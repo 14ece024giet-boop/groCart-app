@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import MultiTaskButton from '../components/MultiTaskButton';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigation'; 
+import LongButton from '../components/LongButton';
 
 const { width } = Dimensions.get('window');
 
@@ -60,7 +60,7 @@ const SignInScreen = () => {
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <MultiTaskButton
+            <LongButton
                 style={styles.signInButton}
                 title="SIGN IN"
                 onPress={() => navigation.navigate('Main')}

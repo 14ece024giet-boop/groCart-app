@@ -9,6 +9,11 @@ import { RootStackParamList } from '../../types/navigation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import PromoBanner from './Promo/PromoBanner';
 import PromoCarousel from './Promo/PromoCarousel';
+import CategoryIcons from './CategoryIcons';
+import BestSellingSection from './ProductListSection';
+import ProductListSection from './ProductListSection';
+import { exclusiveProducts } from './exclusiveProductsData';
+import { bestSellingProducts } from './bestSellingData';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -29,7 +34,20 @@ const MainScreen = () => {
         <View style={styles.section}>
           {/* <Text style={styles.sectionTitle}>🔥 Best Deals</Text> */}
           {/* <PromoBanner onPress={() => navigation.navigate('PromoDetails')} /> */}
-          {/* <PromoCarousel></PromoCarousel> */}
+          <PromoCarousel></PromoCarousel>
+          <CategoryIcons></CategoryIcons>
+          <ProductListSection   title="Best Selling Items"   products={bestSellingProducts}  animateImage={true}   />
+          <ProductListSection   title="🌟 Exclusive"   products={exclusiveProducts}  
+            cardStyle={{
+                backgroundColor: '#fef9f1',
+                borderColor: '#f1e5c4',
+                borderWidth: 1,
+              }}
+              titleStyle={{ color: '#B8860B' }}
+               badge={true}
+               animateImage={true}  
+              />
+
         </View>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛒 Best Selling Items</Text>
