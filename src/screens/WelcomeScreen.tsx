@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import SignInButton from '../components/MultiTaskButton';
-import MultiTaskButton from '../components/MultiTaskButton';
+import LongButton from '../components/LongButton';
+
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +23,7 @@ const WelcomeScreen = ({navigation}) => {
                 <Text style={styles.subtitle}>
                     Let's first check that we{'\n'}deliver to your address
                 </Text>
-                <MultiTaskButton style={styles.signInButton} 
+                <LongButton style={styles.signInButton} 
                                 onPress={()=> navigation.navigate('SignIn')}
                                 title='Sign IN' />
             </View>

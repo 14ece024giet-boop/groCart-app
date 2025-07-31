@@ -7,11 +7,15 @@ type PromoBannerProps = {
   title: string;
   discount: string;
   buttonText: string;
-  image: any; // can be ImageSourcePropType if preferred
+  image: any;
   onPress: () => void;
+  isActive: boolean;
+  index: number;
+  total: number;
 };
 
-const PromoBanner = ({ title, discount, buttonText, image, onPress }: PromoBannerProps) => {
+
+const PromoBanner = ({ title, discount, buttonText, image, onPress , total,index }: PromoBannerProps) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.textContainer}>
@@ -23,6 +27,17 @@ const PromoBanner = ({ title, discount, buttonText, image, onPress }: PromoBanne
       </View>
       <Image source={image} style={styles.image} resizeMode="contain" />
       <View style={styles.cornerRibbon} />
+      <View style={styles.paginationContainer}>
+      {[...Array(total)].map((_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.dot,
+            i === index ? styles.activeDot : null,
+          ]}
+    />
+  ))}
+</View>
     </TouchableOpacity>
   );
 };
@@ -83,6 +98,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9c5c5',
     borderBottomLeftRadius: 50,
   },
+  paginationContainer: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  position: 'absolute',
+  bottom: 8,
+  left: 0,
+  right: 0,
+},
+dot: {
+  width: 6,
+  height: 6,
+  borderRadius: 3,
+  backgroundColor: '#ddd',
+  marginHorizontal: 3,
+},
+activeDot: {
+  backgroundColor: '#FF5A4D',
+  width: 8,
+  height: 8,
+},
+  
 });
 
 export default PromoBanner;
