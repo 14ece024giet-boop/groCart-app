@@ -1,13 +1,8 @@
 // data/bestSelling.ts
 
-export interface Product {
-  id: number;
-  title: string;
-  quantity: string;
-  price: number;
-  discountPrice: number;
-  image:any; // You can add image path later
-}
+import { Product } from "../Product";
+
+
 
 export const bestSellingProducts: Product[] = [
   {
@@ -17,6 +12,7 @@ export const bestSellingProducts: Product[] = [
     price: 15,
     discountPrice: 12,
     image: require('../../../assets/grocery-banner.png'),
+    category: ""
   },
   {
     id: 2,
@@ -24,18 +20,18 @@ export const bestSellingProducts: Product[] = [
     quantity: '1 kg',
     price: 12,
     discountPrice: 10,
-     image: require('../../../assets/grocery-banner.png'),
-
+    image: require('../../../assets/grocery-banner.png'),
+    category: ""
   },
    {
-    id: 3,
-    title: 'Coriander Product title will be here',
-    quantity: '1 kg',
-    price: 15,
-    discountPrice: 12,
+     id: 3,
+     title: 'Coriander Product title will be here',
+     quantity: '1 kg',
+     price: 15,
+     discountPrice: 12,
      image: require('../../../assets/grocery-banner.png'),
-
-  },
+     category: ""
+   },
   {
     id: 4,
     title: 'Corn Product title will be here',
@@ -43,6 +39,6 @@ export const bestSellingProducts: Product[] = [
     price: 12,
     discountPrice: 10,
     image: require('../../../assets/grocery-banner.png'),
-
+    category: ""
   },
 ];

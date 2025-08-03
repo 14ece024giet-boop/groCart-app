@@ -1,0 +1,164 @@
+import React, { useRef, useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../navigation/navigation';
+import LongButton from '../../../components/LongButton';
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'OtpVerification'>;
+
+const OtpVerificationScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+  const [code, setCode] = useState(['', '', '', '']);
+  const [timer, setTimer] = useState(60);
+
+  const inputs = useRef<Array<TextInput | null>>([]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleChange = (text: string, index: number) => {
+    const newCode = [...code];
+    newCode[index] = text;
+    setCode(newCode);
+
+    if (text && index < 3) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleSubmit = () => {
+    const otp = code.join('');
+    console.log('Verifying OTP:', otp);
+
+    // TODO: Add API logic
+    // await verifyOtp(otp);
+    navigation.navigate('Main');
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backArrow}>{'<'}</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Verify Account</Text>
+      <Text style={styles.subtitle}>
+        Please type the verification code sent{'\n'}to +91 99999XXXXX
+      </Text>
+
+      <View style={styles.codeContainer}>
+        {code.map((digit, index) => (
+          <TextInput
+            key={index}
+            ref={(el) => {
+            inputs.current[index] = el;
+            }}
+            style={styles.codeInput}
+            value={digit}
+            onChangeText={(text) => handleChange(text.replace(/[^0-9]/g, ''), index)}
+            maxLength={1}
+            keyboardType="number-pad"
+            returnKeyType="next"
+            autoFocus={index === 0}
+          />
+        ))}
+      </View>
+
+      <LongButton
+        title="VERIFY ACCOUNT"
+        onPress={handleSubmit}
+        disabled={code.some((digit) => digit === '')}
+        style={[
+          styles.verifyButton,
+          { opacity: code.some((digit) => digit === '') ? 0.4 : 1 },
+        ]}
+      />
+
+      <Text style={styles.timerText}>
+        Resend Code in : 00:{timer < 10 ? `0${timer}` : timer}
+      </Text>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+  },
+  backArrow: {
+    fontSize: 28,
+    color: '#222',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 40,
+    lineHeight: 22,
+  },
+  codeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  codeInput: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  verifyButton: {
+    backgroundColor: '#FF5A4D',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FF5A4D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  timerText: {
+    marginTop: 16,
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#999',
+  },
+});
+
+export default OtpVerificationScreen;

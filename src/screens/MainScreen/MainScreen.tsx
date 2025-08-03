@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CartIcon from '../Cart/CartIcon';
-import { RootStackParamList } from '../../types/navigation'; 
+import { RootStackParamList } from '../../navigation/navigation'; 
 import { StackNavigationProp } from '@react-navigation/stack';
 
 import PromoCarousel from './Promo/PromoCarousel';

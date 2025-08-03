@@ -1,14 +1,8 @@
 // data/exclusiveProducts.ts
 import { ImageSourcePropType } from 'react-native';
+import { Product } from './Product';
 
-export interface Product {
-  id: number;
-  title: string;
-  quantity: string;
-  price: number;
-  discountPrice: number;
-  image: ImageSourcePropType;
-}
+
 
 export const exclusiveProducts: Product[] = [
   {
@@ -18,6 +12,7 @@ export const exclusiveProducts: Product[] = [
     price: 45,
     discountPrice: 39,
     image: require('../../../assets/grocery-banner.png'),
+    category: ''
   },
   {
     id: 2,
@@ -26,16 +21,18 @@ export const exclusiveProducts: Product[] = [
     price: 20,
     discountPrice: 17,
     image: require('../../../assets/grocery-banner.png'),
+    category: ''
   },
 
     {
-    id: 3,
-    title: 'Exclusive Basmati Rice',
-    quantity: '5 kg',
-    price: 45,
-    discountPrice: 39,
-    image: require('../../../assets/grocery-banner.png'),
-  },
+      id: 3,
+      title: 'Exclusive Basmati Rice',
+      quantity: '5 kg',
+      price: 45,
+      discountPrice: 39,
+      image: require('../../../assets/grocery-banner.png'),
+      category: ''
+    },
   {
     id: 4,
     title: 'Premium Olive Oil',
@@ -43,6 +40,7 @@ export const exclusiveProducts: Product[] = [
     price: 20,
     discountPrice: 17,
     image: require('../../../assets/grocery-banner.png'),
+    category: ''
   },  {
     id: 5,
     title: 'Exclusive Basmati Rice',
@@ -50,6 +48,7 @@ export const exclusiveProducts: Product[] = [
     price: 45,
     discountPrice: 39,
     image: require('../../../assets/grocery-banner.png'),
+    category: ''
   },
   {
     id: 6,
@@ -58,5 +57,6 @@ export const exclusiveProducts: Product[] = [
     price: 20,
     discountPrice: 17,
     image: require('../../../assets/grocery-banner.png'),
+    category: ''
   },
 ];

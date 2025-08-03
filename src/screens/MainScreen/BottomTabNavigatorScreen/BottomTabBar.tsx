@@ -58,7 +58,7 @@ tabBar: {
   bottom: 0,
   left: 0,
   right: 0,
-  height: 70,
+  height: 90,
   backgroundColor: 'white',
   flexDirection: 'row',
   justifyContent: 'space-around',
@@ -67,7 +67,7 @@ tabBar: {
   borderTopWidth: 2,
   borderTopColor: '#eee',
   paddingBottom: 8,
-  paddingTop: -16,
+  paddingTop: -1,
 },
 
 
