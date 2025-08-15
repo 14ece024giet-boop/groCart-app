@@ -5,8 +5,11 @@ import CartItem from './CartItem';
 import CouponInput from './CouponInput';
 import CartSummary from './CartSummary';
 import CheckoutButton from './CheckoutButton';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 const CartScreen = () => {
+  const cartItems = useSelector((state: RootState) => state.cart.items);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -14,8 +17,9 @@ const CartScreen = () => {
         <Text style={styles.headerCount}>Total 4</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <CartItem />
-        <CartItem />
+        {cartItems.map((item) => (
+          <CartItem key={item.id} item={item} />
+        ))}
         <CouponInput />
         <CartSummary />
         <CheckoutButton />

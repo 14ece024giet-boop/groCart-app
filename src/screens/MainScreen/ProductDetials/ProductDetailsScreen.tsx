@@ -6,18 +6,7 @@ import { useRoute } from '@react-navigation/native';
 import ProductDetailsComponent from './ProductDetailsComponent';
 import ProductListSection from '../ProductListSection';
 import { bestSellingProducts } from '../bestSellingData';
-
-interface ProductDetails {
-  id: number;
-  title: string;
-  image: any; // for require()
-  images?: any[]; // carousel support
-  description: string;
-  price: number;
-  discountPrice: number;
-  weight: string;
-  quantity: string;
-}
+import { ProductDetails } from '../../../types/ProductDetails';
 
 const hardcodedProduct: ProductDetails = {
   id: 1,
@@ -32,7 +21,7 @@ const hardcodedProduct: ProductDetails = {
   price: 50,
   discountPrice: 35,
   weight: '500g',
-  quantity: '20 units',
+  quantity: 20,
 };
 
 const ProductDetailsScreen = () => {

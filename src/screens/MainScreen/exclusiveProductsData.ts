@@ -1,62 +1,54 @@
 // data/exclusiveProducts.ts
 import { ImageSourcePropType } from 'react-native';
 import { Product } from './Product';
+import { ProductDetails } from '../../types/ProductDetails';
 
 
 
-export const exclusiveProducts: Product[] = [
+export const exclusiveProducts: ProductDetails[] = [
   {
     id: 1,
     title: 'Exclusive Basmati Rice',
-    quantity: '5 kg',
+    quantity: 2,
     price: 45,
     discountPrice: 39,
     image: require('../../../assets/grocery-banner.png'),
-    category: ''
+    category: '',
+    description: '',
+    weight: ''
   },
   {
     id: 2,
     title: 'Premium Olive Oil',
-    quantity: '1 L',
+    quantity: 2,
     price: 20,
     discountPrice: 17,
     image: require('../../../assets/grocery-banner.png'),
-    category: ''
+    category: '',
+    description: '',
+    weight: ''
   },
 
     {
       id: 3,
       title: 'Exclusive Basmati Rice',
-      quantity: '5 kg',
+      quantity: 4,
       price: 45,
       discountPrice: 39,
       image: require('../../../assets/grocery-banner.png'),
-      category: ''
+      category: '',
+      description: '',
+      weight: ''
     },
   {
     id: 4,
     title: 'Premium Olive Oil',
-    quantity: '1 L',
+    quantity: 4,
     price: 20,
     discountPrice: 17,
     image: require('../../../assets/grocery-banner.png'),
-    category: ''
-  },  {
-    id: 5,
-    title: 'Exclusive Basmati Rice',
-    quantity: '5 kg',
-    price: 45,
-    discountPrice: 39,
-    image: require('../../../assets/grocery-banner.png'),
-    category: ''
-  },
-  {
-    id: 6,
-    title: 'Premium Olive Oil',
-    quantity: '1 L',
-    price: 20,
-    discountPrice: 17,
-    image: require('../../../assets/grocery-banner.png'),
-    category: ''
-  },
+    category: '',
+    description: '',
+    weight: ''
+  }, 
 ];

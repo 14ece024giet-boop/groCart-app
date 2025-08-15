@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, Dimensions } from 'react-native';
+import { ProductDetails } from '../../../types/ProductDetails';
 
-interface ProductDetails {
-  id: number;
-  title: string;
-  image: any;
-  images?: any[];
-  description: string;
-  price: number;
-  discountPrice: number;
-  weight: string;
-  quantity: string;
-}
 
 interface Props {
   product: ProductDetails;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CartIcon from '../Cart/CartIcon';
 import { RootStackParamList } from '../../navigation/navigation'; 
@@ -10,16 +10,28 @@ import CategoryIcons from './CategoryIcons';
 import ProductListSection from './ProductListSection';
 import { exclusiveProducts } from './exclusiveProductsData';
 import { bestSellingProducts } from './bestSellingData';
-
+import { useDispatch, useSelector } from 'react-redux';
+import  type {RootState} from '../../store';
 import BottomTabBar from './BottomTabNavigatorScreen/BottomTabBar';
+import { increment } from '../../store/slices/counterSlice';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const MainScreen = () => {
+  const dispatch = useDispatch();
+  const count = useSelector((state: RootState) => state.counter.value);
   const navigation = useNavigation<NavigationProp>();
 
   return (
+    
+
     <View style={styles.screen}>
+
+    <View style={styles.container}>
+      <Text>Count: {count}</Text>
+      <Button title="Increase Count" onPress={() => dispatch(increment())} />
+    </View>
+
       {/* Scrollable content */}
       <ScrollView
         style={styles.scrollView}
@@ -30,7 +42,7 @@ const MainScreen = () => {
           {/* Top Bar */}
           <View style={styles.topBar}>
             <Text style={styles.location}>New York City</Text>
-            <CartIcon count={2} onPress={() => navigation.navigate('Cart')} />
+            <CartIcon onPress={() => navigation.navigate('Cart')} />
           </View>
 
           {/* Sections */}
