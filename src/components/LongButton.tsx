@@ -5,6 +5,7 @@ interface LongButtonProps {
     title?: string;
     onPress?: () => void;
     style?: StyleProp<ViewStyle>;
+    disabled?: boolean;
 }
 
 function LongButton({ onPress, style , title }: LongButtonProps) {

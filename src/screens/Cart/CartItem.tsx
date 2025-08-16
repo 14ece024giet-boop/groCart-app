@@ -1,27 +1,40 @@
 // components/CartItem.tsx
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { ProductDetails } from '../../types/ProductDetails';
+import { useDispatch } from 'react-redux';
+import { decrementQuantity, incrementQuantity } from '../../store/slices/cartSlice';
 
-const CartItem = () => {
-  return (
+interface Props {
+  item: ProductDetails;
+}
+
+const CartItem = ({ item }: Props) => {
+  const dispatch = useDispatch();
+return (
     <View style={styles.container}>
-      <View style={styles.imagePlaceholder} />
+      <Image source={item.image} style={styles.imagePlaceholder} />
       <View style={styles.details}>
-        <Text style={styles.weight}>1 Ltr</Text>
-        <Text style={styles.title}>Dummy Product title add will be here</Text>
+        <Text style={styles.weight}>{item.quantity || '1 Unit'}</Text>
+        <Text style={styles.title}>{item.title}</Text>
         <View style={styles.controls}>
-          <TouchableOpacity><Text style={styles.controlButton}>-</Text></TouchableOpacity>
-          <Text style={styles.quantity}>1</Text>
-          <TouchableOpacity><Text style={styles.controlButton}>+</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => dispatch(decrementQuantity(item.id))}>
+            <Text style={styles.controlButton}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantity}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => dispatch(incrementQuantity(item.id))}>
+            <Text style={styles.controlButton}>+</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.oldPrice}>$15</Text>
-          <Text style={styles.newPrice}>$12</Text>
+          <Text style={styles.oldPrice}>${item.price}</Text>
+          <Text style={styles.newPrice}>${item.discountPrice}</Text>
         </View>
       </View>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', marginBottom: 16, padding: 12 },

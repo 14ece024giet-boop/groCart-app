@@ -1,4 +1,4 @@
-import React, { useState  ,useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,32 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Animated,
   ViewStyle,
   TextStyle,
-  Animated,
-} from 'react-native';
-import { Product } from './Product';
-import LongButton from '../../components/LongButton';
-import QuantityButton from '../../components/QuantityButton';
+} from "react-native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import LongButton from "../../components/LongButton";
+import QuantityButton from "../../components/QuantityButton";
+import type { RootStackParamList } from "../../navigation/navigation";
+import type { Product } from "./Product";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { ProductDetails } from "../../types/ProductDetails";
+import {
+  addToCart,
+  decrementQuantity,
+  incrementQuantity,
+} from "../../store/slices/cartSlice";
 
+type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
 
 
 
 
 interface Props {
   title: string;
-  products: Product[];
+  products: ProductDetails[];
   onSeeAllPress?: () => void;
   cardStyle?: ViewStyle;
   titleStyle?: TextStyle;
@@ -28,22 +39,31 @@ interface Props {
   animateImage?: boolean;
 }
 
-const ProductListSection = ({ title, products,  onSeeAllPress , cardStyle ,badge ,animateImage }: Props) => {
-  const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
+const ProductListSection = ({
+  title,
+  products,
+  onSeeAllPress,
+  cardStyle,
+  badge,
+  animateImage,
+}: Props) => {
+  const navigation = useNavigation<NavProp>();
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state: RootState) => state.cart.items);
 
-  const increase = (id: number) => {
-    setQuantities((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
+  const getQuantity = (productId: number) =>
+    cartItems.find((item) => item.id === productId)?.quantity || 0;
+
+  const handleAdd = (product: ProductDetails) => {
+    dispatch(addToCart(product));
   };
 
-  const decrease = (id: number) => {
-    setQuantities((prev) => {
-      const current = prev[id] || 1;
-      return current > 1 ? { ...prev, [id]: current - 1 } : { ...prev, [id]: 0 };
-    });
+  const handleIncrease = (id: number) => {
+    dispatch(incrementQuantity(id));
   };
 
-  const addToCart = (id: number) => {
-    setQuantities((prev) => ({ ...prev, [id]: 1 }));
+  const handleDecrease = (id: number) => {
+    dispatch(decrementQuantity(id));
   };
 // const AnimatedImage = ({ source }: { source: any }) => {
 //   const scale = useRef(new Animated.Value(0.8)).current;
@@ -86,19 +106,14 @@ const AnimatedImage = ({
       toValue: 1,
       useNativeDriver: true,
       friction: 6,
-      delay: index * 100, // Stagger the animation a bit
+        delay: index * 100,
     }).start();
   }, []);
 
   return (
     <Animated.Image
       source={source}
-      style={[
-        styles.imagePlaceholder,
-        {
-          transform: [{ scale }],
-        },
-      ]}
+        style={[styles.imagePlaceholder, { transform: [{ scale }] }]}
     />
   );
 };
@@ -107,7 +122,7 @@ const AnimatedImage = ({
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title]}>{title}</Text>
         {onSeeAllPress && (
           <TouchableOpacity onPress={onSeeAllPress}>
             <Text style={styles.seeAll}>See All</Text>
@@ -117,53 +132,69 @@ const AnimatedImage = ({
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
        {products.map((product, index) => {
-        const quantity = quantities[product.id] || 0;
+          const quantity = getQuantity(product.id);
 
           return (
-            <View key={product.id} style={styles.card}>
-              <View style={[styles.imagePlaceholder ,cardStyle]}>
+            <TouchableOpacity
+              key={product.id}
+              onPress={() =>
+                navigation.navigate("ProductDetials", {
+                  productId: product.id,
+                })
+              }
+              style={[styles.card, cardStyle]}
+            >
+              <View style={styles.imageWrapper}>
         {animateImage ? (
           <AnimatedImage source={product.image} index={index} />
         ) : (
-          <Image source={product.image} style={[styles.image]} />
+                  <Image source={product.image} style={styles.image} />
         )}
+
         {badge && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Exclusive</Text>
           </View>
         )}
       </View>
-              <Text style={styles.quantity}>{product.quantity}</Text>
+
+              <Text style={styles.quantityLabel}>
+                {product.quantity} 
+              </Text>
+
               <Text style={styles.productTitle}>{product.title}</Text>
 
               {quantity === 0 ? (
                 <LongButton
                   title="Add"
-                  onPress={() => addToCart(product.id)}
+                  onPress={() => handleAdd(product)}
                   style={styles.addButton}
                 />
               ) : (
                 <View style={styles.counterContainer}>
                   <QuantityButton
                     title="−"
-                    onPress={() => decrease(product.id)}
+                    onPress={() => handleDecrease(product.id)}
                     style={styles.counterButton}
                   />
                   <Text style={styles.counterText}>{quantity}</Text>
                   <QuantityButton
                     title="+"
-                    onPress={() => increase(product.id)}
+                    onPress={() => handleIncrease(product.id)}
                     style={styles.counterButton}
                   />
                 </View>
               )}
 
               <View style={styles.priceRow}>
-                <Text style={styles.originalPrice}>${product.price}</Text>
-                <Text style={styles.discountedPrice}>${product.discountPrice}</Text>
-              </View>
+                <Text style={styles.originalPrice}>
+                  {`$${product.price}`}
+                </Text>
+                <Text style={styles.discountedPrice}>
+                  {`$${product.discountPrice}`}
+                </Text>
             </View>
-         
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -172,113 +203,82 @@ const AnimatedImage = ({
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 24,
-  },
+  wrapper: { marginBottom: 24 },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 4,
     marginBottom: 12,
   },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: '#222',
-  },
-  seeAll: {
-    color: 'red',
-    fontWeight: '600',
-  },
+  title: { fontWeight: "bold", fontSize: 16, color: "#222" },
+  seeAll: { color: "red", fontWeight: "600" },
 card: {
   width: 160,
-  backgroundColor: '#fff',
+    backgroundColor: "#fff",
   marginRight: 12,
   padding: 10,
   borderRadius: 12,
-  borderColor: '#FFD700',
+    borderColor: "#FFD700",
   borderWidth: 1,
-  shadowColor: '#FFD700',
+    shadowColor: "#FFD700",
   shadowOpacity: 0.3,
   shadowOffset: { width: 0, height: 2 },
   shadowRadius: 6,
   elevation: 4,
 },
-
+  imageWrapper: { position: "relative", marginBottom: 8 },
   imagePlaceholder: {
-    width: '100%',
+    width: "100%",
     height: 100,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     borderRadius: 8,
     marginBottom: 8,
   },
   image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
+    width: "100%",
+    height: 100,
+    resizeMode: "contain",
     borderRadius: 8,
   },
   badge: {
-  position: 'absolute',
+    position: "absolute",
   top: 6,
   left: 6,
-  backgroundColor: '#FFD700',
+    backgroundColor: "#FFD700",
   paddingHorizontal: 6,
   paddingVertical: 2,
   borderRadius: 4,
   zIndex: 1,
 },
-badgeText: {
-  color: '#333',
-  fontSize: 10,
-  fontWeight: 'bold',
-},
-  quantity: {
-    fontSize: 12,
-    color: 'red',
-    marginBottom: 4,
-  },
-  productTitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
+  badgeText: { color: "#333", fontSize: 10, fontWeight: "bold" },
+  quantityLabel: { fontSize: 12, color: "red", marginBottom: 4 },
+  productTitle: { fontSize: 13, fontWeight: "500", marginBottom: 8 },
   addButton: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
     paddingVertical: 6,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
   },
   counterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 6,
   },
   counterButton: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
   },
-  counterText: {
-    marginHorizontal: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  counterText: { marginHorizontal: 10, fontSize: 16, fontWeight: "bold" },
   priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 4,
   },
-  originalPrice: {
-    textDecorationLine: 'line-through',
-    color: '#999',
-  },
-  discountedPrice: {
-    color: 'red',
-    fontWeight: 'bold',
-  },
+  originalPrice: { textDecorationLine: "line-through", color: "#999" },
+  discountedPrice: { color: "red", fontWeight: "bold" },
 });
 
 export default ProductListSection;

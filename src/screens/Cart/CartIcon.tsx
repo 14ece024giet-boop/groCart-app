@@ -4,11 +4,21 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 
-const CartIcon = ({ count = 0, onPress }) => {
+const CartIcon = ({onPress }) => {
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const count = cartItems.reduce((total, item) => total + item.quantity, 0);
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity 
+    style={styles.container} 
+    onPress={onPress}
+    accessibilityLabel="Cart"
+      accessibilityHint="Navigates to cart screen"
+      accessibilityRole="button"
+      >
       <Icon name="cart-outline" size={28} color="#333" />
       {count > 0 && (
         <View style={styles.badge}>

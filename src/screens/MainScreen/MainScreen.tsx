@@ -1,72 +1,79 @@
-// screens/MainScreen.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-
+import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CartIcon from '../Cart/CartIcon';
-import { RootStackParamList } from '../../types/navigation'; 
+import { RootStackParamList } from '../../navigation/navigation'; 
 import { StackNavigationProp } from '@react-navigation/stack';
-import PromoBanner from './Promo/PromoBanner';
+
 import PromoCarousel from './Promo/PromoCarousel';
 import CategoryIcons from './CategoryIcons';
-import BestSellingSection from './ProductListSection';
 import ProductListSection from './ProductListSection';
-import { exclusiveProducts } from './exclusiveProductsData';
-import { bestSellingProducts } from './bestSellingData';
+import { Products } from './bestSellingData';
+import { useDispatch, useSelector } from 'react-redux';
+import  type {RootState} from '../../store';
+import BottomTabBar from './BottomTabNavigatorScreen/BottomTabBar';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const MainScreen = () => {
-    const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch();
+  const navigation = useNavigation<NavigationProp>();
 
   return (
-    <View style={styles.container}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <Text style={styles.location}>New York City</Text>
-        <CartIcon count={2} onPress={() => navigation.navigate('Cart')} />
-      </View>
+    
 
+    <View style={styles.screen}>
       {/* Scrollable content */}
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Placeholder: we'll replace these one-by-one */}
-        <View style={styles.section}>
-          {/* <Text style={styles.sectionTitle}>🔥 Best Deals</Text> */}
-          {/* <PromoBanner onPress={() => navigation.navigate('PromoDetails')} /> */}
-          <PromoCarousel></PromoCarousel>
-          <CategoryIcons></CategoryIcons>
-          <ProductListSection   title="Best Selling Items"   products={bestSellingProducts}  animateImage={true}   />
-          <ProductListSection   title="🌟 Exclusive"   products={exclusiveProducts}  
-            cardStyle={{
-                backgroundColor: '#fef9f1',
-                borderColor: '#f1e5c4',
-                borderWidth: 1,
-              }}
-              titleStyle={{ color: '#B8860B' }}
-               badge={true}
-               animateImage={true}  
-              />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }} // extra space for BottomTabBar
+      >
+        <View style={styles.container}>
+          {/* Top Bar */}
+          <View style={styles.topBar}>
+            <Text style={styles.location}>New York City</Text>
+            <CartIcon onPress={() => navigation.navigate('Cart')} />
+          </View>
 
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🛒 Best Selling Items</Text>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🌟 Exclusive</Text>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🧂 Spices</Text>
+          {/* Sections */}
+          <PromoCarousel />
+          <CategoryIcons />
+          <ProductListSection
+            title="Best Selling Items"
+            products={Products.filter(product => product.productFeautre === "Best Selling Product")}
+            animateImage={true}
+          />
+          <ProductListSection
+            title="🌟 Exclusive"
+            products={Products.filter(product => product.productFeautre === "Exclusive Product")}
+            cardStyle={{
+              backgroundColor: '#fef9f1',
+              borderColor: '#f1e5c4',
+              borderWidth: 1,
+            }}
+            titleStyle={{ color: '#B8860B' }}
+            badge={true}
+            animateImage={true}
+          />
         </View>
       </ScrollView>
+
+      {/* Bottom tab bar fixed at bottom */}
+      <BottomTabBar />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
     paddingTop: 48,
     paddingHorizontal: 16,
   },
@@ -80,17 +87,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#222',
-  },
-  section: {
-    marginBottom: 24,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#444',
   },
 });
 
