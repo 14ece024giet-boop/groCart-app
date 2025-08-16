@@ -40,9 +40,9 @@ export default function AppNavigator() {
         <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
         <Stack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
-        <Stack.Screen name="OtpVerification" component={OtpVerificationScreen
-          
-        } />
+        <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
+        <Stack.Screen name="ProductDetials" component={ProductDetailsScreen} />
+
 
 
 

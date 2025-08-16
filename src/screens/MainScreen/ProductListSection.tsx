@@ -24,7 +24,7 @@ import {
   incrementQuantity,
 } from "../../store/slices/cartSlice";
 
-type NavProp = NavigationProp<RootStackParamList, "ProductScreen">;
+type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
 
 interface Props {
   title: string;
@@ -56,8 +56,6 @@ const ProductListSection = ({
   };
 
   const handleIncrease = (id: number) => {
-    debugger;
-    console.log("Increasing quantity for product ID:", id);
     dispatch(incrementQuantity(id));
   };
 
@@ -110,7 +108,7 @@ const ProductListSection = ({
             <TouchableOpacity
               key={product.id}
               onPress={() =>
-                navigation.navigate("ProductScreen", {
+                navigation.navigate("ProductDetials", {
                   productId: product.id,
                 })
               }

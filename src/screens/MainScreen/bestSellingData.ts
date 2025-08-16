@@ -1,10 +1,9 @@
 // data/bestSelling.ts
 
 import { ProductDetails } from "../../types/ProductDetails";
-import { Product } from "./Product";
 
 
-export const bestSellingProducts: ProductDetails[] = [
+export const Products: ProductDetails[] = [
   {
     id: 1,
     title: 'Apple Product title will be here',
@@ -13,7 +12,8 @@ export const bestSellingProducts: ProductDetails[] = [
     discountPrice: 12,
     image: require('../../../assets/grocery-banner.png'),
     description: "",
-    weight: ""
+    weight: "",
+    productFeautre: "Best Selling Product",
   },
   {
     id: 2,
@@ -24,7 +24,9 @@ export const bestSellingProducts: ProductDetails[] = [
     image: require('../../../assets/grocery-banner.png'),
     category: "",
     description: "",
-    weight: ""
+    weight: "",
+    productFeautre: "Best Selling Product",
+
   },
    {
      id: 3,
@@ -35,7 +37,9 @@ export const bestSellingProducts: ProductDetails[] = [
      image: require('../../../assets/grocery-banner.png'),
      category: "",
      description: "",
-     weight: ""
+     weight: "",
+    productFeautre: "Best Selling Product",
+
    },
   {
     id: 4,
@@ -46,6 +50,34 @@ export const bestSellingProducts: ProductDetails[] = [
     image: require('../../../assets/grocery-banner.png'),
     category: "",
     description: "",
-    weight: ""
+    weight: "",
+    productFeautre: "Best Selling Product",
+
   },
+  {
+    id: 5,
+    title: 'Exclusive Basmati Rice',
+    quantity: 2,
+    price: 45,
+    discountPrice: 39,
+    image: require('../../../assets/grocery-banner.png'),
+    category: '',
+    description: '',
+    weight: '',
+    productFeautre: "Exclusive Product",
+  },
+  {
+    id: 6,
+    title: 'Premium Olive Oil',
+    quantity: 2,
+    price: 20,
+    discountPrice: 17,
+    image: require('../../../assets/grocery-banner.png'),
+    category: '',
+    description: '',
+    weight: '',
+    productFeautre: "Exclusive Product",
+
+  },
+
 ];

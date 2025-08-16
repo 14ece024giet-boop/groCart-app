@@ -8,30 +8,21 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import PromoCarousel from './Promo/PromoCarousel';
 import CategoryIcons from './CategoryIcons';
 import ProductListSection from './ProductListSection';
-import { exclusiveProducts } from './exclusiveProductsData';
-import { bestSellingProducts } from './bestSellingData';
+import { Products } from './bestSellingData';
 import { useDispatch, useSelector } from 'react-redux';
 import  type {RootState} from '../../store';
 import BottomTabBar from './BottomTabNavigatorScreen/BottomTabBar';
-import { increment } from '../../store/slices/counterSlice';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const MainScreen = () => {
   const dispatch = useDispatch();
-  const count = useSelector((state: RootState) => state.counter.value);
   const navigation = useNavigation<NavigationProp>();
 
   return (
     
 
     <View style={styles.screen}>
-
-    <View style={styles.container}>
-      <Text>Count: {count}</Text>
-      <Button title="Increase Count" onPress={() => dispatch(increment())} />
-    </View>
-
       {/* Scrollable content */}
       <ScrollView
         style={styles.scrollView}
@@ -50,12 +41,12 @@ const MainScreen = () => {
           <CategoryIcons />
           <ProductListSection
             title="Best Selling Items"
-            products={bestSellingProducts}
+            products={Products.filter(product => product.productFeautre === "Best Selling Product")}
             animateImage={true}
           />
           <ProductListSection
             title="🌟 Exclusive"
-            products={exclusiveProducts}
+            products={Products.filter(product => product.productFeautre === "Exclusive Product")}
             cardStyle={{
               backgroundColor: '#fef9f1',
               borderColor: '#f1e5c4',

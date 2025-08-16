@@ -12,7 +12,7 @@ export type RootStackParamList = {
     EditProfile: undefined;
     Orders: undefined;
     OrderTracking: { orderId: string };
-    ProductScreen: { productId: number | string };
+    ProductDetials: { productId: number };
     PhoneVerification:undefined;
      OtpVerification: { phoneNumber: string };
     

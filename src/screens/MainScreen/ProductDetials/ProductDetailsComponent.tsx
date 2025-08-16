@@ -33,7 +33,6 @@ export default function ProductDetailsComponent({ product }: Props) {
           <Image source={item} style={styles.image} />
         )}
       />
-
       {/* Pagination Dots */}
       <View style={styles.dotsContainer}>
         {images.map((_, index) => (
@@ -53,10 +52,10 @@ export default function ProductDetailsComponent({ product }: Props) {
           <Text style={styles.discountBadge}>
             {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
           </Text>
-          <Text style={styles.weightBadge}>{product.weight}</Text>
+          <Text style={styles.weightBadge}> {product.weight}</Text>
         </View>
 
-        <Text style={styles.title}>{product.title}</Text>
+        <Text style={styles.title}>{product.id} {product.title}</Text>
         <Text style={styles.subTitle}>{product.quantity}</Text>
 
         <View style={styles.priceRow}>
