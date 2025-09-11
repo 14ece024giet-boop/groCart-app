@@ -38,9 +38,9 @@ const PhoneOtpScreen = () => {
       const response = await sendOtpApi(phone);
       if (response.success) {
         alert(response.message); // "OTP sent successfully"
-        setShowOtpInput(true);
-        setTimer(60);
-      } else {
+      setShowOtpInput(true);
+      setTimer(60);
+    } else {
         alert('Failed to send OTP');
       }
     } catch (error) {
@@ -48,8 +48,8 @@ const PhoneOtpScreen = () => {
       console.error(error);
     }
   } else {
-    alert('Enter valid 10 digit phone number');
-  }
+      alert('Enter valid 10 digit phone number');
+    }
   };
 
   const handleOtpChange = (text: string, index: number) => {

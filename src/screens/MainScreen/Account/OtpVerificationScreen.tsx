@@ -21,6 +21,7 @@ const OtpVerificationScreen = ({ route }: any) => {
   const navigation = useNavigation<NavigationProp>();
   const [code, setCode] = useState(new Array(6).fill(''));
   const [timer, setTimer] = useState(60);
+
   const inputs = useRef<Array<TextInput | null>>([]);
   const phone = route?.params?.phoneNumber || '';
 
@@ -52,7 +53,7 @@ const OtpVerificationScreen = ({ route }: any) => {
       const response = await verifyOtpApi(phone, otp);
       if (response.success) {
         Alert.alert('Success', response.message);
-        navigation.navigate('Main');
+    navigation.navigate('Main');
       } else {
         Alert.alert('Failed', response.message);
       }
@@ -106,7 +107,7 @@ const OtpVerificationScreen = ({ route }: any) => {
           <TextInput
             key={`otp-input-${index}`}
            ref={(el: TextInput | null) => {
-              inputs.current[index] = el;
+            inputs.current[index] = el;
             }}
             style={styles.codeInput}
             value={digit}
@@ -114,6 +115,7 @@ const OtpVerificationScreen = ({ route }: any) => {
             maxLength={1}
             keyboardType="number-pad"
             returnKeyType="next"
+            autoFocus={index === 0}
           />
         ))}
       </View>

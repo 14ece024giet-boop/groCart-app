@@ -26,6 +26,9 @@ import {
 
 type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
 
+
+
+
 interface Props {
   title: string;
   products: ProductDetails[];
@@ -62,32 +65,59 @@ const ProductListSection = ({
   const handleDecrease = (id: number) => {
     dispatch(decrementQuantity(id));
   };
+// const AnimatedImage = ({ source }: { source: any }) => {
+//   const scale = useRef(new Animated.Value(0.8)).current;
 
-  const AnimatedImage = ({
-    source,
-    index,
-  }: {
-    source: any;
-    index: number;
-  }) => {
-    const scale = useRef(new Animated.Value(0)).current;
+//   useEffect(() => {
+//     Animated.spring(scale, {
+//       toValue: 1,
+//       useNativeDriver: true,
+//       friction: 5,
+//     }).start();
+//   }, []);
 
-    useEffect(() => {
-      Animated.spring(scale, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 6,
+//   return (
+//     <Animated.Image
+//       source={source}
+//       style={[
+//         {
+//           width: '100%',
+//           height: '100%',
+//           resizeMode: 'contain',
+//           borderRadius: 8,
+//           transform: [{ scale }],
+//         },
+//       ]}
+//     />
+//   );
+// };
+
+const AnimatedImage = ({
+  source,
+  index,
+}: {
+  source: any;
+  index: number;
+}) => {
+  const scale = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 6,
         delay: index * 100,
-      }).start();
-    }, []);
+    }).start();
+  }, []);
 
-    return (
-      <Animated.Image
-        source={source}
+  return (
+    <Animated.Image
+      source={source}
         style={[styles.imagePlaceholder, { transform: [{ scale }] }]}
-      />
-    );
-  };
+    />
+  );
+};
+
 
   return (
     <View style={styles.wrapper}>
@@ -101,7 +131,7 @@ const ProductListSection = ({
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {products.map((product, index) => {
+       {products.map((product, index) => {
           const quantity = getQuantity(product.id);
 
           return (
@@ -115,18 +145,18 @@ const ProductListSection = ({
               style={[styles.card, cardStyle]}
             >
               <View style={styles.imageWrapper}>
-                {animateImage ? (
-                  <AnimatedImage source={product.image} index={index} />
-                ) : (
+        {animateImage ? (
+          <AnimatedImage source={product.image} index={index} />
+        ) : (
                   <Image source={product.image} style={styles.image} />
-                )}
+        )}
 
-                {badge && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Exclusive</Text>
-                  </View>
-                )}
-              </View>
+        {badge && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Exclusive</Text>
+          </View>
+        )}
+      </View>
 
               <Text style={styles.quantityLabel}>
                 {product.quantity} 
@@ -163,7 +193,7 @@ const ProductListSection = ({
                 <Text style={styles.discountedPrice}>
                   {`$${product.discountPrice}`}
                 </Text>
-              </View>
+            </View>
             </TouchableOpacity>
           );
         })}
@@ -182,26 +212,27 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: "bold", fontSize: 16, color: "#222" },
   seeAll: { color: "red", fontWeight: "600" },
-  card: {
-    width: 160,
+card: {
+  width: 160,
     backgroundColor: "#fff",
-    marginRight: 12,
-    padding: 10,
-    borderRadius: 12,
+  marginRight: 12,
+  padding: 10,
+  borderRadius: 12,
     borderColor: "#FFD700",
-    borderWidth: 1,
+  borderWidth: 1,
     shadowColor: "#FFD700",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 4,
-  },
+  shadowOpacity: 0.3,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 6,
+  elevation: 4,
+},
   imageWrapper: { position: "relative", marginBottom: 8 },
   imagePlaceholder: {
     width: "100%",
     height: 100,
     backgroundColor: "#ccc",
     borderRadius: 8,
+    marginBottom: 8,
   },
   image: {
     width: "100%",
@@ -211,14 +242,14 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: 6,
-    left: 6,
+  top: 6,
+  left: 6,
     backgroundColor: "#FFD700",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    zIndex: 1,
-  },
+  paddingHorizontal: 6,
+  paddingVertical: 2,
+  borderRadius: 4,
+  zIndex: 1,
+},
   badgeText: { color: "#333", fontSize: 10, fontWeight: "bold" },
   quantityLabel: { fontSize: 12, color: "red", marginBottom: 4 },
   productTitle: { fontSize: 13, fontWeight: "500", marginBottom: 8 },

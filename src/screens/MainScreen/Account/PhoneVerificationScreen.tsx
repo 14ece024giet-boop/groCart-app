@@ -39,7 +39,7 @@ const PhoneVerificationScreen = () => {
     } else {
       alert('Enter valid 10 digit phone number');
     }
-    };
+  };
 
   return (
     <KeyboardAvoidingView

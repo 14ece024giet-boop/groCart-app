@@ -21,7 +21,7 @@ export const Products: ProductDetails[] = [
     quantity: 2,
     price: 12,
     discountPrice: 10,
-    image: require('../../../assets/grocery-banner.png'),
+     image: require('../../../assets/grocery-banner.png'),
     category: "",
     description: "",
     weight: "",
@@ -29,18 +29,18 @@ export const Products: ProductDetails[] = [
 
   },
    {
-     id: 3,
+    id: 3,
      title: 'grapps Product title will be here',
      quantity: 2,
-     price: 15,
-     discountPrice: 12,
+    price: 15,
+    discountPrice: 12,
      image: require('../../../assets/grocery-banner.png'),
      category: "",
      description: "",
      weight: "",
     productFeautre: "Best Selling Product",
 
-   },
+  },
   {
     id: 4,
     title: 'papaya Product title will be here',
