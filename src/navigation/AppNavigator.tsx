@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
-import SignInScreen from '../screens/MainScreen/Account/SignInScreen';
 import CartIcon from '../screens/Cart/CartIcon';
 import CartScreen from '../screens/Cart/CartScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
@@ -20,6 +19,7 @@ import ProductScreen from '../screens/MainScreen/ProductDetials/ProductDetailsSc
 import CreateAccountScreen from '../screens/MainScreen/Account/CreateAccountScreen';
 import PhoneVerificationScreen from '../screens/MainScreen/Account/PhoneVerificationScreen';
 import OtpVerificationScreen from '../screens/MainScreen/Account/OtpVerificationScreen';
+import CheckoutScreen from '../screens/MainScreen/checkout/CheckoutDetails';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -28,7 +28,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="SignIn" component={SignInScreen} />
+        <Stack.Screen name="SignIn" component={PhoneVerificationScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="PromoDetails" component={PromoDetailsScreen} />
@@ -42,6 +42,7 @@ export default function AppNavigator() {
         <Stack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
         <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
         <Stack.Screen name="ProductDetials" component={ProductDetailsScreen} />
+        <Stack.Screen name="CheckoutDetails" component={CheckoutScreen} />
 
 
 

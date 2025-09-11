@@ -7,20 +7,23 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/navigation';
 import LongButton from '../../../components/LongButton';
+import { verifyOtpApi } from '../../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'OtpVerification'>;
 
-const OtpVerificationScreen = () => {
+const OtpVerificationScreen = ({ route }: any) => {
   const navigation = useNavigation<NavigationProp>();
-  const [code, setCode] = useState(['', '', '', '']);
+  const [code, setCode] = useState(new Array(6).fill(''));
   const [timer, setTimer] = useState(60);
 
   const inputs = useRef<Array<TextInput | null>>([]);
+  const phone = route?.params?.phoneNumber || '';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -34,18 +37,41 @@ const OtpVerificationScreen = () => {
     newCode[index] = text;
     setCode(newCode);
 
-    if (text && index < 3) {
+    if (text && index < 5) {
       inputs.current[index + 1]?.focus();
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const otp = code.join('');
-    console.log('Verifying OTP:', otp);
+    if (otp.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid 6-digit code.');
+      return;
+    }
 
-    // TODO: Add API logic
-    // await verifyOtp(otp);
+    try {
+      const response = await verifyOtpApi(phone, otp);
+      if (response.success) {
+        Alert.alert('Success', response.message);
     navigation.navigate('Main');
+      } else {
+        Alert.alert('Failed', response.message);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'OTP verification failed.');
+    }
+  };
+
+  const fillOtp = (otpString: string) => {
+    const otpArray = otpString.split('');
+    const sliced = otpArray.slice(0, 6);
+    setCode(sliced);
+    sliced.forEach((digit, i) => {
+      if (inputs.current[i]) {
+        inputs.current[i]?.setNativeProps({ text: digit });
+      }
+    });
+    inputs.current[5]?.focus();
   };
 
   return (
@@ -59,14 +85,28 @@ const OtpVerificationScreen = () => {
 
       <Text style={styles.title}>Verify Account</Text>
       <Text style={styles.subtitle}>
-        Please type the verification code sent{'\n'}to +91 99999XXXXX
+        Please type the verification code sent{'\n'}to +91 {phone}
       </Text>
 
+      {/* ✅ Hidden input for autofill */}
+      <TextInput
+        style={{ height: 0, width: 0, opacity: 0, position: 'absolute' }}
+        keyboardType="number-pad"
+        textContentType="oneTimeCode"
+        maxLength={6}
+        onChangeText={(code) => {
+          if (code.length === 6) {
+            fillOtp(code);
+          }
+        }}
+      />
+
+      {/* ✅ Visible OTP inputs */}
       <View style={styles.codeContainer}>
         {code.map((digit, index) => (
           <TextInput
-            key={index}
-            ref={(el) => {
+            key={`otp-input-${index}`}
+           ref={(el: TextInput | null) => {
             inputs.current[index] = el;
             }}
             style={styles.codeInput}
@@ -131,7 +171,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   codeInput: {
-    width: 56,
+    width: 48,
     height: 56,
     borderRadius: 8,
     borderWidth: 1,

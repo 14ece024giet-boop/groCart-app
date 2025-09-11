@@ -12,6 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/navigation';
 import LongButton from '../../../components/LongButton';
+import { Alert } from 'react-native/Libraries/Alert/Alert';
+import { sendOtpApi } from '../../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'PhoneVerification'>;
 
@@ -21,13 +23,22 @@ const PhoneVerificationScreen = () => {
 
   const isValidPhone = phone.length === 10;
 
-  const handleNext = () => {
-    const fullPhoneNumber = `+91${phone}`;
-    console.log('Proceeding with phone:', fullPhoneNumber);
-
-    // TODO: Replace with API logic to send OTP
-    // await sendOtp(fullPhoneNumber);
-    navigation.navigate('OtpVerification'); // Replace with actual next step
+  const handleNext = async () => {
+      if (phone.length === 10) {
+         try {
+        const response = await sendOtpApi(phone);
+        if (response.success) {
+         navigation.navigate('OtpVerification', { phoneNumber: phone });
+        } else {
+          alert('Failed to send OTP');
+        }
+      } catch (error) {
+        alert('Error sending OTP');
+        console.error(error);
+      }
+    } else {
+      alert('Enter valid 10 digit phone number');
+    }
   };
 
   return (
@@ -39,7 +50,7 @@ const PhoneVerificationScreen = () => {
         <Text style={styles.backArrow}>{'<'}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Your Mobile Number</Text>
+      <Text style={styles.title}>Your Mobile Number  IS </Text>
       <Text style={styles.subtitle}>
         We will send an SMS with a confirmation{'\n'}code to this number
       </Text>

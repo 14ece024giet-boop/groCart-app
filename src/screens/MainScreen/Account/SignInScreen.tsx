@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { RootStackParamList } from '../../../navigation/navigation';
 import { useNavigation } from '@react-navigation/native';
+import { sendOtpApi } from '../../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -31,12 +32,22 @@ const PhoneOtpScreen = () => {
     return () => clearInterval(interval);
   }, [showOtpInput, timer]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (phone.length === 10) {
-      // TODO: call sendOtpApi(phone)
+       try {
+      const response = await sendOtpApi(phone);
+      if (response.success) {
+        alert(response.message); // "OTP sent successfully"
       setShowOtpInput(true);
       setTimer(60);
     } else {
+        alert('Failed to send OTP');
+      }
+    } catch (error) {
+      alert('Error sending OTP');
+      console.error(error);
+    }
+  } else {
       alert('Enter valid 10 digit phone number');
     }
   };
@@ -251,4 +262,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PhoneOtpScreen;
+
+
+
