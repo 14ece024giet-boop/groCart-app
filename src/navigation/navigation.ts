@@ -15,5 +15,6 @@ export type RootStackParamList = {
     ProductDetials: { productId: number };
     PhoneVerification:undefined;
      OtpVerification: { phoneNumber: string };
+     CheckoutDetails: undefined;
     
 };
