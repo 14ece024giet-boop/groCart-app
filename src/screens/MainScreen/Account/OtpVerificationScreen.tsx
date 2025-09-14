@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/navigation';
 import LongButton from '../../../components/LongButton';
 import { verifyOtpApi } from '../../../Utility/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'OtpVerification'>;
 
@@ -52,6 +53,7 @@ const OtpVerificationScreen = ({ route }: any) => {
     try {
       const response = await verifyOtpApi(phone, otp);
       if (response.success) {
+        await AsyncStorage.setItem('authToken', response.data);
         Alert.alert('Success', response.message);
     navigation.navigate('Main');
       } else {
