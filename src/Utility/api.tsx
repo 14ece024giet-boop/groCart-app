@@ -4,13 +4,14 @@ import { BASE_URL } from './apiConfig';
 type OtpResponse = {
   success: boolean;
   message: string;
-  token?:string;
+  data?:string;
 };
 
 export const sendOtpApi = async (phoneNumber: string): Promise<OtpResponse> =>{
   console.log('=== API function called ===');
 const endpoint = `${BASE_URL}/auth/send-otp`;
 console.log('Endpoint:', endpoint); 
+// Removed server listen code; not needed in client-side API utility.
   const payload = {
     phoneNumber,
   };
@@ -35,7 +36,7 @@ console.log('Endpoint:', endpoint);
 
 export const verifyOtpApi = async (
   phoneNumber: string,
-  code: string
+  otp: string
 ): Promise<OtpResponse> => {
   console.log('=== Verify OTP API called ===');
   const endpoint = `${BASE_URL}/auth/verify-otp`;
@@ -43,7 +44,7 @@ export const verifyOtpApi = async (
 
   const payload = {
     phoneNumber,
-    code,
+    otp,
   };
 
   const config = {

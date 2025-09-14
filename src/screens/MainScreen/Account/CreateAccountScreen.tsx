@@ -25,6 +25,7 @@ const CreateAccountScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +44,10 @@ const CreateAccountScreen = () => {
 
   if (!name.trim()) {
     Alert.alert('Validation Error', 'Name is required.');
+    return false;
+  }
+  if(!phoneRegex.test(phoneNumber)) {
+    Alert.alert('Validation Error', 'Please enter a valid phone number.');
     return false;
   }
   if (!emailRegex.test(email)) {
@@ -67,6 +72,7 @@ const CreateAccountScreen = () => {
     // TODO: Replace with actual API call
     const payload = {
       name,
+      phoneNumber,
       email,
       password,
     };
@@ -95,7 +101,6 @@ const CreateAccountScreen = () => {
 
         <Text style={styles.title}>Create New Account</Text>
         <Text style={styles.subtitle}>Please all details to create new account</Text>
-
         {/* Name */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Name</Text>
@@ -111,6 +116,24 @@ const CreateAccountScreen = () => {
         </View>
         </View>
 
+        {/* Phone Number */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Phone Number</Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={[styles.input, { fontWeight: 'bold' }]}
+              placeholder="Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholderTextColor="#999"
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              maxLength={15}
+            />
+          </View>
+        </View>
+
+        {/* Email */}
         {/* Email */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email ID</Text>
