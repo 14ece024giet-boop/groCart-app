@@ -49,16 +49,18 @@ const OtpVerificationScreen = ({ route }: any) => {
       Alert.alert('Error', 'Please enter a valid 6-digit code.');
       return;
     }
+    navigation.navigate('Main');
 
     try {
-      const response = await verifyOtpApi(phone, otp);
-      if (response.success) {
-        await AsyncStorage.setItem('authToken', response.data);
-        Alert.alert('Success', response.message);
-    navigation.navigate('Main');
-      } else {
-        Alert.alert('Failed', response.message);
-      }
+      // const response = await verifyOtpApi(phone, otp);
+
+    //   if (response.success) {
+    //     await AsyncStorage.setItem('authToken', response.data);
+    //     Alert.alert('Success', response.message);
+    // navigation.navigate('Main');
+    //   } else {
+    //     Alert.alert('Failed', response.message);
+    //   }
     } catch (error) {
       Alert.alert('Error', 'OTP verification failed.');
     }

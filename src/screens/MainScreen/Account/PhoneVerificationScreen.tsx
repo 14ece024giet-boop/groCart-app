@@ -25,13 +25,15 @@ const PhoneVerificationScreen = () => {
 
   const handleNext = async () => {
       if (phone.length === 10) {
-         try {
-        const response = await sendOtpApi(phone);
-        if (response.success) {
          navigation.navigate('OtpVerification', { phoneNumber: phone });
-        } else {
-          alert('Failed to send OTP');
-        }
+
+         try {
+        // const response = await sendOtpApi(phone);
+        // if (response.success) {
+        //  navigation.navigate('OtpVerification', { phoneNumber: phone });
+        // } else {
+        //   alert('Failed to send OTP');
+        // }
       } catch (error) {
         alert('Error sending OTP');
         console.error(error);
