@@ -1,17 +1,10 @@
-export interface ProductDetails {
+export interface ProductListItemDto {
   id: number;
   title: string;
   imageUrl: string;
-
   price: number;
   discountPrice: number;
-
-  unitSize: string;
-  description: string;
-
-  categoryName: string;
-  brandName: string;
-
   isBestSelling: boolean;
   isExclusive: boolean;
+  // Add more fields only if needed for the main screen
 }

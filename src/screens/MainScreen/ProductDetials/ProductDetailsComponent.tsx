@@ -10,7 +10,7 @@ interface Props {
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailsComponent({ product }: Props) {
-  const images = product.images || [product.image];
+  const images = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
   const [activeIndex, setActiveIndex] = useState(0);
 
   const onViewRef = React.useRef(({ changed }: any) => {
@@ -30,7 +30,7 @@ export default function ProductDetailsComponent({ product }: Props) {
         onViewableItemsChanged={onViewRef.current}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => (
-          <Image source={item} style={styles.image} />
+          <Image source={{ uri: item }} style={styles.image} />
         )}
       />
       {/* Pagination Dots */}
@@ -52,11 +52,11 @@ export default function ProductDetailsComponent({ product }: Props) {
           <Text style={styles.discountBadge}>
             {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
           </Text>
-          <Text style={styles.weightBadge}> {product.weight}</Text>
+          <Text style={styles.weightBadge}> {product.unitSize}</Text>
         </View>
 
         <Text style={styles.title}>{product.id} {product.title}</Text>
-        <Text style={styles.subTitle}>{product.quantity}</Text>
+        <Text style={styles.subTitle}>{product.unitSize}</Text>
 
         <View style={styles.priceRow}>
           <Text style={styles.oldPrice}>${product.price}</Text>

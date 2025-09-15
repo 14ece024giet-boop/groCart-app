@@ -23,6 +23,7 @@ import {
   decrementQuantity,
   incrementQuantity,
 } from "../../store/slices/cartSlice";
+import { ProductListItemDto } from "../../types/ProductListItemDto";
 
 type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
 
@@ -31,12 +32,13 @@ type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
 
 interface Props {
   title: string;
-  products: ProductDetails[];
+  products: ProductListItemDto[];
   onSeeAllPress?: () => void;
   cardStyle?: ViewStyle;
   titleStyle?: TextStyle;
   badge?: boolean;
   animateImage?: boolean;
+  sectionType?: 'bestSelling' | 'exclusive';
 }
 
 const ProductListSection = ({
@@ -46,6 +48,7 @@ const ProductListSection = ({
   cardStyle,
   badge,
   animateImage,
+  sectionType = 'bestSelling',
 }: Props) => {
   const navigation = useNavigation<NavProp>();
   const dispatch = useDispatch();
@@ -54,7 +57,7 @@ const ProductListSection = ({
   const getQuantity = (productId: number) =>
     cartItems.find((item) => item.id === productId)?.quantity || 0;
 
-  const handleAdd = (product: ProductDetails) => {
+  const handleAdd = (product:ProductListItemDto) => {
     dispatch(addToCart(product));
   };
 
@@ -140,15 +143,16 @@ const AnimatedImage = ({
               onPress={() =>
                 navigation.navigate("ProductDetials", {
                   productId: product.id,
+                  sectionType,
                 })
               }
               style={[styles.card, cardStyle]}
             >
               <View style={styles.imageWrapper}>
         {animateImage ? (
-          <AnimatedImage source={product.image} index={index} />
+          <AnimatedImage source={product.imageUrl} index={index} />
         ) : (
-                  <Image source={product.image} style={styles.image} />
+                  <Image source={{ uri: product.imageUrl }} style={styles.image} />
         )}
 
         {badge && (
@@ -159,7 +163,7 @@ const AnimatedImage = ({
       </View>
 
               <Text style={styles.quantityLabel}>
-                {product.quantity} 
+                {/* {product.quantity}  */}
               </Text>
 
               <Text style={styles.productTitle}>{product.title}</Text>

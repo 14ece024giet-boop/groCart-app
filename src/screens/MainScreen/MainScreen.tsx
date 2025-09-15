@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CartIcon from '../Cart/CartIcon';
@@ -12,13 +12,32 @@ import { Products } from './bestSellingData';
 import { useDispatch, useSelector } from 'react-redux';
 import  type {RootState} from '../../store';
 import BottomTabBar from './BottomTabNavigatorScreen/BottomTabBar';
+import { ProductListItemDto } from '../../types/ProductListItemDto';
+import { getHomeProductsApi } from '../../Utility/HomeProductsApi';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const MainScreen = () => {
-  const dispatch = useDispatch();
   const navigation = useNavigation<NavigationProp>();
+  const [bestSelling, setBestSelling] = useState<ProductListItemDto[]>([]);
+  const [exclusive, setExclusive] = useState<ProductListItemDto[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getHomeProductsApi();
+        setBestSelling(response.data.bestSellingItems || []);
+        setExclusive(response.data.exclusiveItems || []);
+      } catch (err) {
+        console.error('Failed to load home products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
   return (
     
 
@@ -40,22 +59,24 @@ const MainScreen = () => {
           <PromoCarousel />
           <CategoryIcons />
           <ProductListSection
-            title="Best Selling Items"
-            products={Products.filter(product => product.productFeautre === "Best Selling Product")}
-            animateImage={true}
-          />
+          title="Best Selling Items"
+          products={bestSelling}
+          animateImage={true}
+          sectionType='bestSelling'
+        />
           <ProductListSection
-            title="🌟 Exclusive"
-            products={Products.filter(product => product.productFeautre === "Exclusive Product")}
-            cardStyle={{
-              backgroundColor: '#fef9f1',
-              borderColor: '#f1e5c4',
-              borderWidth: 1,
-            }}
-            titleStyle={{ color: '#B8860B' }}
-            badge={true}
-            animateImage={true}
-          />
+  title="🌟 Exclusive"
+  products={exclusive}
+  sectionType='exclusive'
+  cardStyle={{
+    backgroundColor: '#fef9f1',
+    borderColor: '#f1e5c4',
+    borderWidth: 1,
+  }}
+  titleStyle={{ color: '#B8860B' }}
+  badge={true}
+  animateImage={true}
+/>
         </View>
       </ScrollView>
 
