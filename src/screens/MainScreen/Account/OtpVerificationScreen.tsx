@@ -52,15 +52,14 @@ const OtpVerificationScreen = ({ route }: any) => {
     navigation.navigate('Main');
 
     try {
-      // const response = await verifyOtpApi(phone, otp);
+      const response = await verifyOtpApi(phone, otp);
 
-    //   if (response.success) {
-    //     await AsyncStorage.setItem('authToken', response.data);
-    //     Alert.alert('Success', response.message);
-    // navigation.navigate('Main');
-    //   } else {
-    //     Alert.alert('Failed', response.message);
-    //   }
+      if (response.success) {
+        Alert.alert('Success', response.message);
+    navigation.navigate('Main');
+      } else {
+        Alert.alert('Failed', response.message);
+      }
     } catch (error) {
       Alert.alert('Error', 'OTP verification failed.');
     }

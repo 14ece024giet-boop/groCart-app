@@ -1,19 +1,25 @@
 // components/CheckoutButton.tsx
 import { useNavigation } from '@react-navigation/native';
-import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { RootStackParamList } from '../../navigation/navigation';
 
 type CheckoutButtonNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CheckoutDetails'>;
 
-const CheckoutButton = () => {
-   const navigation = useNavigation<CheckoutButtonNavigationProp>();
+interface CheckoutButtonProps {
+  couponCode: string;
+}
+
+const CheckoutButton: React.FC<CheckoutButtonProps> = ({ couponCode }) => {
+  const navigation = useNavigation<CheckoutButtonNavigationProp>();
+
   const handleCheckout = () => {
-    navigation.navigate('CheckoutDetails');
+    navigation.navigate('CheckoutDetails', { couponCode });
   };
+
   return (
-   <TouchableOpacity style={styles.button} onPress={handleCheckout}>
+    <TouchableOpacity style={styles.button} onPress={handleCheckout}>
       <Text style={styles.buttonText}>CHECKOUT</Text>
     </TouchableOpacity>
   );

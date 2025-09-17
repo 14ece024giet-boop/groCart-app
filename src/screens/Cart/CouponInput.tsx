@@ -2,15 +2,21 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 
-const CouponInput = () => {
+interface Props {
+  value: string;
+  onChangeText: (text: string) => void;
+}
+
+const CouponInput: React.FC<Props> = ({ value, onChangeText }) => {
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Coupon Code"
-        value="gro50get"
+        value={value}
+        onChangeText={onChangeText}
         style={styles.input}
       />
-      <Text style={styles.applied}>✔</Text>
+      {value ? <Text style={styles.applied}>✔</Text> : null}
     </View>
   );
 };

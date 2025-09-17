@@ -81,3 +81,20 @@ export const getExclusiveProductsApi = async (): Promise<ApiResponse<ProductList
     throw error;
   }
 };
+
+export const getProductsByIdsApi = async (
+  ids: number[]
+): Promise<ApiResponse<ProductListItemDto[]>> => {
+  const endpoint = `${BASE_URL}/Product/get-by-ids`;
+  const config = {
+    headers: { 'Content-Type': 'application/json' },
+  };
+
+  try {
+    const response = await axios.post<ApiResponse<ProductListItemDto[]>>(endpoint, {ids}, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching products by IDs:', error);
+    throw error;
+  }
+};
