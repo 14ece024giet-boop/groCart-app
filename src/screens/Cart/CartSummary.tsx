@@ -10,26 +10,27 @@ const CartSummary = () => {
    const deliveryFee = 5;
    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
    const discountedPrice = items.reduce((sum, item) => sum + item.discountPrice * item.quantity, 0);
-    const discount = totalPrice - discountedPrice;
-    const grandTotal = discountedPrice + deliveryFee;
+    const discount =  discountedPrice;
+    const grandTotal = totalPrice - discountedPrice + deliveryFee;
 
  return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Text>Delivery Fees</Text>
-        <Text>${deliveryFee.toFixed(2)}</Text>
+        <Text>Total Price</Text>
+        <Text>{totalPrice.toFixed(2)}</Text>
       </View>
       <View style={styles.row}>
         <Text>Discount</Text>
-        <Text>-${discount.toFixed(2)}</Text>
+        <Text>-{discount.toFixed(2)}</Text>
       </View>
+       <View style={styles.separator} />
       <View style={styles.row}>
-        <Text>Total Price</Text>
-        <Text>${totalPrice.toFixed(2)}</Text>
+        <Text>Delivery Fees</Text>
+        <Text>{deliveryFee.toFixed(2)}</Text>
       </View>
       <View style={styles.rowBold}>
         <Text>Grand Total</Text>
-        <Text style={styles.grandTotal}>${grandTotal.toFixed(2)}</Text>
+        <Text style={styles.grandTotal}>{grandTotal.toFixed(2)}</Text>
       </View>
     </View>
   );
@@ -50,6 +51,12 @@ const styles = StyleSheet.create({
   grandTotal: {
     color: '#FF5A4D',
     fontWeight: 'bold',
+  },
+   // 🔹 separator line style
+  separator: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 8,
   },
 });
 

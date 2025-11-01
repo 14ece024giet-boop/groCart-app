@@ -48,12 +48,28 @@ const MainScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }} // extra space for BottomTabBar
       >
+
+        
+          
         <View style={styles.container}>
           {/* Top Bar */}
           <View style={styles.topBar}>
             <Text style={styles.location}>New York City</Text>
             <CartIcon onPress={() => navigation.navigate('Cart')} />
           </View>
+
+          {/* Add the button here */}
+        <View style={{ marginBottom: 16 }}>
+  <Button
+    title="Open QR Scanner"
+    onPress={() =>
+      navigation.navigate('DeliveryOrderDetails', {
+        orderId: Number(51),
+      })
+    }
+  />
+</View>
+
 
           {/* Sections */}
           <PromoCarousel />

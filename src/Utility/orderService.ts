@@ -9,14 +9,19 @@ export interface OrderItem {
 
 export interface CreateOrderPayload {
   items: OrderItem[];
-  deliveryDate: string;
-  deliveryType: 'COD'; // Only COD supported for now
-  couponCode?: string; // ✅ Add this line
+  deliveryType: 'COD';
+  couponCode?: string;
+
+  // ✅ Add these
+  deliveryPointId: number;
+  recipientName: string;
+  roomNumber: string;
+  additionalInfo: string;
 }
 
+
 export interface OrderResponse {
-  orderId: string;
-  message?: string;
+  qrCodeUrl :string
 }
 
 
@@ -29,7 +34,7 @@ export const createOrderApi = async (
 
  const headers = await getAuthHeaders();
 
-
+console.log('Order Payload:', JSON.stringify(payload, null, 2));
 
   try {
     const response = await axios.post<ApiResponse<OrderResponse>>(endpoint, payload, { headers });

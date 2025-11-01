@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CryptoJS from 'crypto-js';
 import * as Keychain from 'react-native-keychain';
-export const BASE_URL = 'http://192.168.1.3:5000/api';
+export const BASE_URL = 'http://172.20.116.207:5000/api';
+
+export const SECRET_KEY = CryptoJS.enc.Utf8.parse('your-32-char-long-secret-key!!!!');
+export const IV = CryptoJS.enc.Utf8.parse('1234567890ABCDEF');
 
 
 export interface ApiResponse<T> {

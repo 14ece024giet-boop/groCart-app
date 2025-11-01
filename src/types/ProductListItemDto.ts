@@ -1,10 +1,15 @@
 export interface ProductListItemDto {
   id: number;
-  title: string;
+  name: string;
   imageUrl: string;
   price: number;
   discountPrice: number;
   isBestSelling: boolean;
   isExclusive: boolean;
-  // Add more fields only if needed for the main screen
+
+  // Optional fields for cart compatibility
+  description?: string;
+  unitSize?: string;
+  brandName?: string;
+  categoryName?: string;
 }

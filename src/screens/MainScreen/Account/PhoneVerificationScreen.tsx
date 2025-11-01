@@ -28,12 +28,12 @@ const PhoneVerificationScreen = () => {
          navigation.navigate('OtpVerification', { phoneNumber: phone });
 
          try {
-        // const response = await sendOtpApi(phone);
-        // if (response.success) {
-        //  navigation.navigate('OtpVerification', { phoneNumber: phone });
-        // } else {
-        //   alert('Failed to send OTP');
-        // }
+        const response = await sendOtpApi(phone);
+        if (response.success) {
+         navigation.navigate('OtpVerification', { phoneNumber: phone });
+        } else {
+          alert('Failed to send OTP');
+        }
       } catch (error) {
         alert('Error sending OTP');
         console.error(error);

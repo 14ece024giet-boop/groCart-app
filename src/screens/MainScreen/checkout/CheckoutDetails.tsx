@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// screens/CheckoutScreen.tsx
+
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,163 +8,208 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  FlatList,
   ActivityIndicator,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../navigation/navigation';
 import { createOrderApi } from '../../../Utility/orderService';
+import { getUserAddressApi, UserAddressDto } from '../../../Utility/userAddressApi';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { clearCart } from '../../../store/slices/cartSlice'; // ✅ Import cart reset action
+
+type CheckoutDetailsRouteProp = RouteProp<RootStackParamList, 'CheckoutDetails'>;
+type CheckoutScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CheckoutDetails'>;
+
+type OrderPayload = {
+  items: { productId: string; quantity: number }[];
+  deliveryType: 'COD';
+  deliveryPointId: number;
+  recipientName: string;
+  roomNumber: string;
+  additionalInfo: string;
+  couponCode?: string;
+};
 
 const CheckoutScreen = () => {
-  type CheckoutDetailsRouteProp = RouteProp<RootStackParamList, 'CheckoutDetails'>;
   const route = useRoute<CheckoutDetailsRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<CheckoutScreenNavigationProp>();
+  const dispatch = useDispatch();
 
   const cartItems = useSelector((state: RootState) => state.cart.items);
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
+  const [userAddress, setUserAddress] = useState<UserAddressDto | null>(null);
+  const [recipientName, setRecipientName] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [additionalInfo, setAdditionalInfo] = useState('');
 
   const couponCode = route.params?.couponCode || '';
   const deliveryType: 'COD' = 'COD';
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (event.type === 'set' && selectedDate) {
-      setDate(selectedDate);
-    }
-    setShowDatePicker(false);
-  };
-
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = 5;
-  const grandTotal = subtotal + deliveryFee;
 
-  const handlePlaceOrder = async () => {
-    const payload = {
-      items: cartItems.map(item => ({
-        productId: String(item.id),
-        quantity: item.quantity,
-      })),
-      deliveryDate: date.toISOString(),
-      deliveryType,
-      couponCode: couponCode || undefined, // ✅ include couponCode if available
+  // ✅ Calculate prices
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const totalAfterDiscount = cartItems.reduce(
+    (acc, item) => acc + item.discountPrice * item.quantity,
+    0
+  );
+  const discountAmount = totalAfterDiscount;
+  const grandTotal = subtotal - totalAfterDiscount + deliveryFee;
+
+  // ✅ Fetch user address once
+  useEffect(() => {
+    const fetchUserAddress = async () => {
+      try {
+        const response = await getUserAddressApi();
+        if (response.success && response.data) {
+          const data = response.data;
+          setUserAddress(data);
+          setRecipientName(data.userName || '');
+          setRoomNumber(data.roomNumber || '');
+        }
+      } catch (err: any) {
+        console.error('Failed to load user address:', err.message);
+      }
     };
 
+    fetchUserAddress();
+  }, []);
+
+  const buildOrderPayload = (): OrderPayload => ({
+    items: cartItems.map(item => ({
+      productId: String(item.id),
+      quantity: item.quantity,
+    })),
+    deliveryType,
+    deliveryPointId: Number(userAddress!.deliveryPointId),
+    recipientName,
+    roomNumber: roomNumber || '',
+    additionalInfo: additionalInfo || '',
+    ...(couponCode ? { couponCode } : {}),
+  });
+
+  const withLoading = async (callback: () => Promise<void>) => {
+    setIsPlacingOrder(true);
     try {
-      setIsPlacingOrder(true);
-      const result = await createOrderApi(payload);
-      if (result.success) {
-        Alert.alert('Order Placed', `Order ID: ${result.data.orderId}`, [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(), // Navigate elsewhere if needed
-          },
-        ]);
-      } else {
-        Alert.alert('Failed', result.message || 'Something went wrong');
-      }
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to place order');
+      await callback();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Unexpected error occurred.');
     } finally {
       setIsPlacingOrder(false);
     }
   };
 
-  const renderCartItem = ({ item }: any) => (
-    <View style={styles.cartItem}>
-      <Text style={styles.cartItemText}>{item.name}</Text>
-      <Text style={styles.cartItemText}>x{item.quantity}</Text>
-      <Text style={styles.cartItemText}>${(item.price * item.quantity).toFixed(2)}</Text>
-    </View>
-  );
+  const handlePlaceOrder = async () => {
+    if (!userAddress?.deliveryPointId) {
+      Alert.alert('Delivery point is missing from your profile.');
+      return;
+    }
+
+    await withLoading(async () => {
+      const payload = buildOrderPayload();
+      const result = await createOrderApi(payload);
+
+      if (result.success) {
+        // ✅ Clear cart after successful order
+        dispatch(clearCart());
+
+        // ✅ Navigate to order confirmation screen
+        navigation.navigate('OrderConfirmation', {
+          qrCodeUrl: result.data?.qrCodeUrl ?? '',
+        });
+      } else {
+        Alert.alert('Failed', result.message || 'Something went wrong while placing your order.');
+      }
+    });
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Checkout Details</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.heading}>Checkout Details</Text>
 
-      {/* Delivery Date */}
-      <TouchableOpacity style={styles.row} onPress={() => setShowDatePicker(true)}>
-        <View>
-          <Text style={styles.label}>Delivery Date</Text>
-          <Text style={styles.rowText}>
-            {date.toLocaleDateString(undefined, {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })}{' '}
-            {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
+          {/* Address Details */}
+          <View style={{ marginTop: 20 }}>
+            <Text style={styles.label}>Recipient Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter recipient name"
+              value={recipientName}
+              onChangeText={setRecipientName}
+            />
+
+            <Text style={styles.label}>Room Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter room number"
+              value={roomNumber}
+              onChangeText={setRoomNumber}
+            />
+
+            <Text style={styles.label}>Additional Info</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Additional instructions (optional)"
+              value={additionalInfo}
+              onChangeText={setAdditionalInfo}
+            />
+          </View>
+
+          {/* Pricing Summary */}
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <Text>Subtotal</Text>
+              <Text>{subtotal.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.summaryRow}>
+              <Text>Discount</Text>
+              <Text style={{ color: '#0a0' }}>-{discountAmount.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.separator} />
+
+            <View style={styles.summaryRow}>
+              <Text>Delivery Fee</Text>
+              <Text>{deliveryFee.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.summaryRowTotal}>
+              <Text style={styles.totalLabel}>Grand Total</Text>
+              <Text style={styles.totalValue}>{grandTotal.toFixed(2)}</Text>
+            </View>
+          </View>
+
+          {/* Place Order Button */}
+          <TouchableOpacity
+            style={[styles.placeOrderButton, isPlacingOrder && { opacity: 0.7 }]}
+            onPress={handlePlaceOrder}
+            disabled={isPlacingOrder}
+          >
+            {isPlacingOrder ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.placeOrderButtonText}>Place Order</Text>
+            )}
+          </TouchableOpacity>
         </View>
-        <Text style={styles.arrow}>›</Text>
-      </TouchableOpacity>
-
-      {/* Delivery Address */}
-      <TouchableOpacity style={styles.row}>
-        <View>
-          <Text style={styles.label}>Delivery Address</Text>
-          <Text style={styles.rowText}>1234 Main St, City, Country</Text>
-        </View>
-        <Text style={styles.arrow}>›</Text>
-      </TouchableOpacity>
-
-      {/* Cart Items */}
-      <View style={{ marginTop: 20 }}>
-        <Text style={styles.sectionTitle}>Cart Items</Text>
-        <FlatList
-          data={cartItems}
-          keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={renderCartItem}
-          style={styles.cartList}
-        />
-      </View>
-
-      {/* Pricing Summary */}
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
-          <Text>Subtotal</Text>
-          <Text>${subtotal.toFixed(2)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>Delivery Fee</Text>
-          <Text>${deliveryFee.toFixed(2)}</Text>
-        </View>
-        <View style={styles.summaryRowTotal}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>${grandTotal.toFixed(2)}</Text>
-        </View>
-      </View>
-
-      {/* Place Order Button */}
-      <TouchableOpacity
-        style={[styles.placeOrderButton, isPlacingOrder && { opacity: 0.6 }]}
-        onPress={handlePlaceOrder}
-        disabled={isPlacingOrder}
-      >
-        {isPlacingOrder ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.placeOrderButtonText}>Place Order</Text>
-        )}
-      </TouchableOpacity>
-
-      {/* Date Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
-          display="default"
-          onChange={handleDateChange}
-        />
-      )}
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default CheckoutScreen;
+
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 40,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -180,45 +227,15 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 4,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  rowText: {
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 16,
     fontSize: 16,
-    color: '#111',
-    fontWeight: '500',
-  },
-  arrow: {
-    fontSize: 20,
-    color: '#ccc',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    marginTop: 10,
     color: '#333',
-  },
-  cartList: {
-    marginBottom: 20,
-  },
-  cartItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  cartItemText: {
-    fontSize: 15,
-    color: '#333',
-    flex: 1,
-    textAlign: 'left',
   },
   summaryContainer: {
     marginTop: 20,
@@ -231,12 +248,17 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E6E6E6',
+    marginVertical: 10,
   },
   summaryRowTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderColor: '#ddd',
