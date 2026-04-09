@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, Dimensions } from 'react-native';
-import { ProductDetails } from '../../../types/ProductDetails';
+import { ProductDetails } from '../../../../types/ProductDetails';
 
 
 interface Props {

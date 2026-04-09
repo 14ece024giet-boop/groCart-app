@@ -1,4 +1,6 @@
 export interface ProductDetails {
+  image: any;
+  title: ReactNode;
   id: number;
   name: string;
   imageUrl: string;

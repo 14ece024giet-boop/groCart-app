@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import LongButton from '../components/LongButton';
+import LongButton from '../../components/LongButton';
 
 
 const { width } = Dimensions.get('window');

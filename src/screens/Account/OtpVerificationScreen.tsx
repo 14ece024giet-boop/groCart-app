@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../navigation/navigation';
-import LongButton from '../../../components/LongButton';
-import { verifyOtpApi } from '../../../Utility/api';
+import { RootStackParamList } from '../../navigation/navigation';
+import LongButton from '../../components/LongButton';
+import { verifyOtpApi } from '../../Utility/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'OtpVerification'>;

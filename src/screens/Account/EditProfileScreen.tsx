@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LongButton from '../../../components/LongButton';
+import LongButton from '../../components/LongButton';
 
 export default function EditProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -47,7 +47,7 @@ export default function EditProfileScreen({ navigation }) {
         {/* Profile Picture */}
         <View style={styles.avatarContainer}>
           <Image
-            source={require('../../../../assets/grocery-banner.png')}
+            source={require('../../../assets/grocery-banner.png')}
             style={styles.avatar}
           />
           <TouchableOpacity style={styles.cameraIcon}>

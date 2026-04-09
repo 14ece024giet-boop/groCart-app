@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { RootStackParamList } from '../../navigation/navigation';
+import { RootStackParamList } from '../../../navigation/navigation';
 
 type CheckoutButtonNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CheckoutDetails'>;
 

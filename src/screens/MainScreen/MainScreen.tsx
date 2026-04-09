@@ -81,14 +81,14 @@ const MainScreen = () => {
           sectionType='bestSelling'
         />
           <ProductListSection
-  title="🌟 Exclusive"
-  products={exclusive}
-  sectionType='exclusive'
-  cardStyle={{
-    backgroundColor: '#fef9f1',
-    borderColor: '#f1e5c4',
-    borderWidth: 1,
-  }}
+        title="🌟 Exclusive"
+        products={exclusive}
+        sectionType='exclusive'
+        cardStyle={{
+          backgroundColor: '#fef9f1',
+          borderColor: '#f1e5c4',
+          borderWidth: 1,
+        }}
   titleStyle={{ color: '#B8860B' }}
   badge={true}
   animateImage={true}

@@ -18,7 +18,7 @@ export default function ProfileHeader({ name, email, phone }) {
       {/* Profile content */}
       <View style={styles.profileContent}>
         <Image
-          source={require('../../../../assets/grocery-banner.png')}
+          // source={require('../../../assets/grocery-banner.png')}
           style={styles.avatar}
         />
         <Text style={styles.name}>{name}</Text>

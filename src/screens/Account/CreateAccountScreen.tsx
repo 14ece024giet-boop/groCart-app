@@ -10,10 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import LongButton from '../../../components/LongButton';
+import LongButton from '../../components/LongButton';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../navigation/navigation';
+import { RootStackParamList } from '../../navigation/navigation';
 import { Alert } from 'react-native';
 
 

@@ -42,6 +42,7 @@ const cartSlice = createSlice({
           isExclusive: action.payload.isExclusive ?? false,
           discountPrice: action.payload.discountPrice ?? action.payload.price,
           name: action.payload.name,
+          image: undefined
         });
       }
     },

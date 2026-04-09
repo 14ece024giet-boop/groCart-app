@@ -1,5 +1,5 @@
 import React from 'react';
-import LongButton from '../../../components/LongButton';
+import LongButton from '../../components/LongButton';
 
 export default function LogoutButton({ onLogout }: { onLogout: () => void }) {
   return (

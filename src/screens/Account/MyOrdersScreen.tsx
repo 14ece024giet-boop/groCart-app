@@ -11,7 +11,7 @@ import {
   SafeAreaView,
   RefreshControl,
 } from 'react-native';
-import { RootStackParamList } from '../../../navigation/navigation';
+import { RootStackParamList } from '../../navigation/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface Order {

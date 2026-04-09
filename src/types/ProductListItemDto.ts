@@ -1,4 +1,7 @@
+import { ReactNode } from "react";
+
 export interface ProductListItemDto {
+  title: ReactNode;
   id: number;
   name: string;
   imageUrl: string;
@@ -6,8 +9,6 @@ export interface ProductListItemDto {
   discountPrice: number;
   isBestSelling: boolean;
   isExclusive: boolean;
-
-  // Optional fields for cart compatibility
   description?: string;
   unitSize?: string;
   brandName?: string;

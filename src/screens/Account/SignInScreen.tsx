@@ -9,9 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { RootStackParamList } from '../../../navigation/navigation';
+import { RootStackParamList } from '../../navigation/navigation';
 import { useNavigation } from '@react-navigation/native';
-import { sendOtpApi } from '../../../Utility/api';
+import { sendOtpApi } from '../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 

@@ -25,7 +25,7 @@ import {
 } from "../../store/slices/cartSlice";
 import { ProductListItemDto } from "../../types/ProductListItemDto";
 
-type NavProp = NavigationProp<RootStackParamList, "ProductDetials">;
+type NavProp = NavigationProp<RootStackParamList, "ProductDetails">;
 
 
 
@@ -141,8 +141,8 @@ const AnimatedImage = ({
             <TouchableOpacity
               key={product.id}
               onPress={() =>
-                navigation.navigate("ProductDetials", {
-                  productId: product.id,
+                navigation.navigate("ProductDetails", {
+                  productId: product.id.toString(),
                   sectionType,
                 })
               }
@@ -192,10 +192,10 @@ const AnimatedImage = ({
 
               <View style={styles.priceRow}>
                 <Text style={styles.originalPrice}>
-                  {`$${product.price}`}
+                  {`${product.price}`}
                 </Text>
                 <Text style={styles.discountedPrice}>
-                  {`$${product.discountPrice}`}
+                  {`${product.price-product.discountPrice}`}
                 </Text>
             </View>
             </TouchableOpacity>

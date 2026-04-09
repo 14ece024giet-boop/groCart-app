@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../navigation/navigation';
-import LongButton from '../../../components/LongButton';
+import { RootStackParamList } from '../../navigation/navigation';
+import LongButton from '../../components/LongButton';
 import { Alert } from 'react-native/Libraries/Alert/Alert';
-import { sendOtpApi } from '../../../Utility/api';
+import { sendOtpApi } from '../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'PhoneVerification'>;
 

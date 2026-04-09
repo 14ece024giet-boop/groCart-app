@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import CartItem from './CartItem';
 import CouponInput from './CouponInput';
 import CartSummary from './CartSummary';
-import CheckoutButton from './CheckoutButton';
+import CheckoutButton from '../MainScreen/checkout/CheckoutButton';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { getProductsByIdsApi } from '../../Utility/HomeProductsApi';

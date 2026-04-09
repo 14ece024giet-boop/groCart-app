@@ -3,7 +3,7 @@
 import { ProductDetails } from "../../types/ProductDetails";
 
 
-export const Products: ProductDetails[] = [
+export const Products = [
   {
     id: 1,
     title: 'Apple Product title will be here',
@@ -80,4 +80,4 @@ export const Products: ProductDetails[] = [
 
   },
 
-];
+] as unknown as ProductDetails[];
