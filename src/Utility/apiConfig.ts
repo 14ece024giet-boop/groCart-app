@@ -9,7 +9,7 @@ export const IV = CryptoJS.enc.Utf8.parse('1234567890ABCDEF');
 
 export interface ApiResponse<T> {
   success: boolean;
-  message: string;
+  message: string;  
   data: T;
 }
 
