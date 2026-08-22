@@ -11,7 +11,7 @@ import {
   TextStyle,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import LongButton from "../../components/LongButton";
+import MultiTaskButton from "../../components/Components/shared/MultiTaskButton";
 import QuantityButton from "../../components/QuantityButton";
 import type { RootStackParamList } from "../../navigation/navigation";
 import type { Product } from "./Product";
@@ -149,27 +149,27 @@ const AnimatedImage = ({
               style={[styles.card, cardStyle]}
             >
               <View style={styles.imageWrapper}>
-        {animateImage ? (
-          <AnimatedImage source={product.imageUrl} index={index} />
+        {animateImage && product.imageUrl ? (
+          <AnimatedImage source={{ uri: product.imageUrl }} index={index} />
         ) : (
                   <Image source={{ uri: product.imageUrl }} style={styles.image} />
         )}
 
-        {badge && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Exclusive</Text>
-          </View>
-        )}
-      </View>
+                {badge && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>Exclusive</Text>
+                  </View>
+                )}
+              </View>
 
               <Text style={styles.quantityLabel}>
-                {/* {product.quantity}  */}
+                {product.unitSize}
               </Text>
 
-              <Text style={styles.productTitle}>{product.title}</Text>
+              <Text style={styles.productTitle}>{product.name}</Text>
 
               {quantity === 0 ? (
-                <LongButton
+                <MultiTaskButton
                   title="Add"
                   onPress={() => handleAdd(product)}
                   style={styles.addButton}
@@ -195,7 +195,7 @@ const AnimatedImage = ({
                   {`${product.price}`}
                 </Text>
                 <Text style={styles.discountedPrice}>
-                  {`${product.price-product.discountPrice}`}
+                  {`${product.discountPrice}`}
                 </Text>
             </View>
             </TouchableOpacity>

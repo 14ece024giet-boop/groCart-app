@@ -1,5 +1,5 @@
-import axios from "axios";
-import { ApiResponse, BASE_URL } from "./apiConfig";
+import apiClient from "./apiClient";
+import { ApiResponse } from "./apiConfig";
 import { ProductDetails } from "../types/ProductDetails";
 import { ProductListItemDto } from "../types/ProductListItemDto";
 
@@ -9,16 +9,10 @@ interface HomeProductsData {
 }
 
 export const getHomeProductsApi = async (): Promise<ApiResponse<HomeProductsData>> => {
-  const endpoint = `${BASE_URL}/Product/home-screen`;
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  const endpoint = `/Product/home-screen`;
 
   try {
-    const response = await axios.post<ApiResponse<HomeProductsData>>(endpoint, null, config);
+    const response = await apiClient.get<ApiResponse<HomeProductsData>>(endpoint);
     return response.data;
   } catch (error) {
     console.error('Error fetching home products:', error);
@@ -29,17 +23,17 @@ export const getHomeProductsApi = async (): Promise<ApiResponse<HomeProductsData
 export const getProductDetailsApi = async (
   productId: number
 ): Promise<ApiResponse<ProductDetails>> => {
-  const endpoint = `${BASE_URL}/Product/get-by-id`;
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  const endpoint = `/Product`;
 
   try {
-    const response = await axios.post<ApiResponse<ProductDetails>>(endpoint, productId, config);
-    return response.data;
+    const response = await apiClient.get<ApiResponse<ProductDetails[]>>(endpoint, {
+      params: { ids: [productId] },
+    });
+    return {
+      success: response.data.success,
+      message: response.data.message,
+      data: (response.data.data && response.data.data.length > 0) ? (response.data.data[0] as any) : null,
+    };
   } catch (error) {
     console.error('Error fetching product details:', error);
     throw error;
@@ -47,16 +41,12 @@ export const getProductDetailsApi = async (
 };
 
 export const getBestSellingProductsApi = async (): Promise<ApiResponse<ProductListItemDto[]>> => {
-  const endpoint = `${BASE_URL}/Product/get-best-selling`;
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  const endpoint = `/Product`;
 
   try {
-    const response = await axios.post<ApiResponse<ProductListItemDto[]>>(endpoint, null, config);
+    const response = await apiClient.get<ApiResponse<ProductListItemDto[]>>(endpoint, {
+      params: { isBestSelling: true },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching best selling products:', error);
@@ -65,16 +55,12 @@ export const getBestSellingProductsApi = async (): Promise<ApiResponse<ProductLi
 };
 
 export const getExclusiveProductsApi = async (): Promise<ApiResponse<ProductListItemDto[]>> => {
-  const endpoint = `${BASE_URL}/Product/get-exclusive`;
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  const endpoint = `/Product`;
 
   try {
-    const response = await axios.post<ApiResponse<ProductListItemDto[]>>(endpoint, null, config);
+    const response = await apiClient.get<ApiResponse<ProductListItemDto[]>>(endpoint, {
+      params: { isExclusive: true },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching exclusive products:', error);
@@ -85,13 +71,12 @@ export const getExclusiveProductsApi = async (): Promise<ApiResponse<ProductList
 export const getProductsByIdsApi = async (
   ids: number[]
 ): Promise<ApiResponse<ProductListItemDto[]>> => {
-  const endpoint = `${BASE_URL}/Product/get-by-ids`;
-  const config = {
-    headers: { 'Content-Type': 'application/json' },
-  };
+  const endpoint = `/Product`;
 
   try {
-    const response = await axios.post<ApiResponse<ProductListItemDto[]>>(endpoint, {ids}, config);
+    const response = await apiClient.get<ApiResponse<ProductListItemDto[]>>(endpoint, {
+      params: { ids },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching products by IDs:', error);

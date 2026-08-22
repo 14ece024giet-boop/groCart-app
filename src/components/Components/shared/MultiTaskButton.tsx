@@ -1,17 +1,18 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, StyleProp, ActivityIndicator } from 'react-native';
 
-interface LongButtonProps {
+interface MultiTaskButtonProps {
     title?: string;
     onPress?: () => void;
     style?: StyleProp<ViewStyle>;
+    disabled?: boolean;
+    loading?: boolean;
 }
 
-function LongButton({ onPress, style , title }: LongButtonProps) {
+function MultiTaskButton({ onPress, style , title, disabled, loading }: MultiTaskButtonProps) {
     return (
-        console.log('SignInButton rendered', onPress, style),
-        <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
-            <Text style={styles.text}>{title}</Text>
+        <TouchableOpacity onPress={onPress} style={[styles.button, style, (disabled || loading) && styles.disabled]} disabled={disabled || loading}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.text}>{title}</Text>}
         </TouchableOpacity>
     );
 }
@@ -27,6 +28,9 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         textTransform: 'uppercase',
     },
+    disabled: {
+        opacity: 0.5,
+    },
 });
 
-export default LongButton;
+export default MultiTaskButton;

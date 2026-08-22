@@ -10,8 +10,8 @@ const CartSummary = () => {
    const deliveryFee = 5;
    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
    const discountedPrice = items.reduce((sum, item) => sum + item.discountPrice * item.quantity, 0);
-    const discount =  discountedPrice;
-    const grandTotal = totalPrice - discountedPrice + deliveryFee;
+    const discount =  totalPrice - discountedPrice;
+    const grandTotal = discountedPrice + deliveryFee;
 
  return (
     <View style={styles.container}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import {
   View,
@@ -13,119 +13,15 @@ import {
 } from 'react-native';
 import { RootStackParamList } from '../../navigation/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { getMyOrdersApi, Order } from '../../Utility/myOrdersApi';
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  date: string;
-  time: string;
-  status: 'All' | 'Ongoing' | 'Waiting' | 'Completed';
-  itemCount: number;
-  amount: number;
-  statusText: string;
-  statusColor: string;
-}
 
 const TABS = ['All', 'Ongoing', 'Waiting', 'Completed'];
 
-// Mock data for testing
-const MOCK_ORDERS: Order[] = [
-  {
-    id: '1',
-    orderNumber: '876543',
-    date: '29 April',
-    time: '01:21 PM',
-    status: 'Ongoing',
-    itemCount: 3,
-    amount: 24,
-    statusText: 'On the way',
-    statusColor: '#00BFFF', // blue-ish
-  },
-  {
-    id: '2',
-    orderNumber: '876544',
-    date: '27 April',
-    time: '04:56 PM',
-    status: 'Waiting',
-    itemCount: 2,
-    amount: 21,
-    statusText: 'Pickup',
-    statusColor: '#FFA500', // orange
-  },
-  {
-    id: '3',
-    orderNumber: '876545',
-    date: '26 April',
-    time: '04:21 PM',
-    status: 'Completed',
-    itemCount: 1,
-    amount: 9,
-    statusText: 'Cancelled',
-    statusColor: '#FF6347', // red-ish
-  },
-  {
-    id: '4',
-    orderNumber: '876546',
-    date: '22 April',
-    time: '06:45 PM',
-    status: 'Ongoing',
-    itemCount: 3,
-    amount: 24,
-    statusText: 'On the way',
-    statusColor: '#00BFFF',
-  },
-  {
-    id: '5',
-    orderNumber: '876547',
-    date: '18 April',
-    time: '01:16 PM',
-    status: 'Completed',
-    itemCount: 1,
-    amount: 9,
-    statusText: 'Cancelled',
-    statusColor: '#FF6347',
-  },
-    {
-        id: '6',
-        orderNumber: '876548',
-        date: '15 April',
-        time: '03:30 PM',
-        status: 'Waiting',
-        itemCount: 2,
-        amount: 21,
-        statusText: 'Pickup',
-        statusColor: '#FFA500',
-    },
-    {
-    id: '7',
-    orderNumber: '876547',
-    date: '18 April',
-    time: '01:16 PM',
-    status: 'Completed',
-    itemCount: 1,
-    amount: 9,
-    statusText: 'Cancelled',
-    statusColor: '#FF6347',
-  },
-  {
-    id: '8',
-    orderNumber: '876547',
-    date: '18 April',
-    time: '01:16 PM',
-    status: 'Completed',
-    itemCount: 1,
-    amount: 9,
-    statusText: 'Completed',
-    statusColor: '#FF6347',
-  },
-];
-
 type MyOrdersScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Orders'>;
 
-type MyOrdersScreenRouteProp = RouteProp<RootStackParamList, 'Orders'>;
 export default function MyOrdersScreen() {
 const navigation = useNavigation<MyOrdersScreenNavigationProp>();
-  const route = useRoute<MyOrdersScreenRouteProp>();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,55 +30,25 @@ const navigation = useNavigation<MyOrdersScreenNavigationProp>();
   const [activeTab, setActiveTab] = useState<string>('All');
   const [hasMore, setHasMore] = useState(true);
 
-
-
-
   const fetchOrders = useCallback(
     async (pageNumber = 1, refreshing = false) => {
+      if (loading && !refreshing) return;
+
       setLoading(true);
       setError(null);
 
       try {
-        // ----- Commented API call -----
-        // const response = await fetch(
-        //   `https://your-api-url.com/orders?page=${pageNumber}&status=${activeTab.toLowerCase()}`,
-        //   {
-        //     method: 'GET',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //       Authorization: 'Bearer YOUR_AUTH_TOKEN',
-        //     },
-        //   }
-        // );
-
-        // if (!response.ok) {
-        //   throw new Error('Failed to fetch orders');
-        // }
-
-        // const data = await response.json();
-
-        // Fake delay to simulate network request
-        await new Promise(resolve => setTimeout(resolve, 700));
-
-        // Filter mock data based on active tab
-        const filteredData = activeTab === 'All'
-          ? MOCK_ORDERS
-          : MOCK_ORDERS.filter(order => order.status === activeTab);
-
-        // Simulate pagination by slicing the mock array
-        const pageSize = 3;
-        const paginatedData = filteredData.slice(0, pageNumber * pageSize);
-
-        if (refreshing) {
-          setOrders(paginatedData);
+        const response = await getMyOrdersApi(activeTab, pageNumber);
+        if (response.success && response.data) {
+          const { orders: newOrders, hasMore: newHasMore } = response.data;
+          setOrders(refreshing ? newOrders : (prev) => [...prev, ...newOrders]);
+          setHasMore(newHasMore);
+          setPage(pageNumber);
         } else {
-          setOrders(prev => [...prev, ...paginatedData.slice(prev.length)]);
+          setError(response.message || 'Failed to fetch orders.');
         }
-
-        setHasMore(paginatedData.length < filteredData.length);
-        setPage(pageNumber);
       } catch (err) {
-        setError(err.message || 'Something went wrong');
+        setError((err as Error).message || 'Something went wrong');
       } finally {
         setLoading(false);
         if (refreshing) setRefreshing(false);
@@ -264,13 +130,11 @@ const renderOrder = ({ item }: { item: Order }) => (
         onEndReachedThreshold={0.5}
         ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="small" /> : null}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No orders found.</Text>
-            </View>
-          )
-        }
+        ListEmptyComponent={!loading ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No orders found.</Text>
+          </View>
+        ) : null}
       />
     </SafeAreaView>
   );

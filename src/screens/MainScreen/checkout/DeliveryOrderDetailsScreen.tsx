@@ -18,7 +18,11 @@ import {
   uploadDeliveryPhoto,
 } from '../../../Utility/OrderDetailsApi';
 import * as ImagePicker from 'expo-image-picker';
-import { verifyOrderOtpApi } from '../../../Utility/DeliveryPointsApi';
+import {
+  cancelOrderApi,
+  resendOrderOtpApi,
+  verifyOrderOtpApi,
+} from '../../../Utility/DeliveryPointsApi';
 
 type DeliveryOrderDetailsRouteProp = RouteProp<
   RootStackParamList,
@@ -37,6 +41,8 @@ const DeliveryOrderDetailsScreen = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpVerified, setOtpVerified] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [isDelivering, setIsDelivering] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     const getOrderDetails = async () => {
@@ -59,7 +65,7 @@ const DeliveryOrderDetailsScreen = () => {
 
   // ⏲ Resend cooldown timer
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (resendCooldown > 0) {
       timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
     }
@@ -115,6 +121,7 @@ const DeliveryOrderDetailsScreen = () => {
     return;
   }
 
+  setIsDelivering(true);
   try {
     const result = await uploadDeliveryPhoto({ orderId, photoUri });
 
@@ -125,20 +132,51 @@ const DeliveryOrderDetailsScreen = () => {
     }
   } catch (error) {
     Alert.alert('Error', 'Something went wrong during delivery submission.');
+  } finally {
+    setIsDelivering(false);
   }
 };
 
-  const handleCancel = () => {
-    Alert.alert('Order Cancelled', 'You cancelled the delivery.');
-    // TODO: Call your API to cancel the order
+  const handleCancel = async () => {
+    Alert.alert(
+      'Confirm Cancellation',
+      'Are you sure you want to cancel this delivery?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          onPress: async () => {
+            setIsCancelling(true);
+            try {
+              const result = await cancelOrderApi({ orderId });
+              if (result.success) {
+                Alert.alert('Order Cancelled', 'The order has been successfully cancelled.');
+                // Optionally navigate back or update UI
+              } else {
+                Alert.alert('Cancellation Failed', result.message || 'Could not cancel the order.');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'An unexpected error occurred while cancelling.');
+            } finally {
+              setIsCancelling(false);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
   };
 
   const handleResendOtp = async () => {
     setResendingOtp(true);
     try {
-      // TODO: Replace with real API call to resend OTP
-      Alert.alert('OTP Sent', 'A new OTP has been sent to the customer.');
-      setResendCooldown(30);
+      const result = await resendOrderOtpApi({ orderId });
+      if (result.success) {
+        Alert.alert('OTP Sent', 'A new OTP has been sent to the customer.');
+        setResendCooldown(30);
+      } else {
+        Alert.alert('Failed', result.message || 'Could not resend OTP.');
+      }
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to resend OTP');
     } finally {
@@ -258,20 +296,33 @@ const DeliveryOrderDetailsScreen = () => {
 
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Text
+          <TouchableOpacity
             style={[
               styles.deliveredButton,
-              !otpVerified && { backgroundColor: '#ccc', color: '#666' },
+              (!otpVerified || isCancelling) && styles.disabledButton,
             ]}
-            onPress={otpVerified ? handleDelivered : undefined}
+            onPress={handleDelivered}
+            disabled={!otpVerified || isDelivering || isCancelling}
           >
-            Delivered
-          </Text>
+            {isDelivering ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Delivered</Text>
+            )}
+          </TouchableOpacity>
         </View>
         <View style={styles.button}>
-          <Text style={styles.cancelButton} onPress={handleCancel}>
-            Cancel
-          </Text>
+          <TouchableOpacity
+            style={[styles.cancelButton, isDelivering && styles.disabledButton]}
+            onPress={handleCancel}
+            disabled={isDelivering || isCancelling}
+          >
+            {isCancelling ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Cancel</Text>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -322,21 +373,22 @@ const styles = StyleSheet.create({
   },
   deliveredButton: {
     backgroundColor: '#4CAF50',
-    color: 'white',
-    textAlign: 'center',
     paddingVertical: 12,
     borderRadius: 8,
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   cancelButton: {
     backgroundColor: '#f44336',
-    color: 'white',
-    textAlign: 'center',
     paddingVertical: 12,
     borderRadius: 8,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
   },
   uploadButton: {
     backgroundColor: '#2196F3',

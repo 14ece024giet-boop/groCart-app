@@ -1,11 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import LongButton from '../../components/LongButton';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigation/navigation';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
 
+type WelcomeScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Welcome'
+>;
 
+type Props = {
+  navigation: WelcomeScreenNavigationProp;
+};
 const { width } = Dimensions.get('window');
 
-const WelcomeScreen = ({navigation}) => {
+const WelcomeScreen = ({ navigation }: Props) => {
     return (
         <View style={styles.container}>
             {/* Background circles */}
@@ -23,7 +32,7 @@ const WelcomeScreen = ({navigation}) => {
                 <Text style={styles.subtitle}>
                     Let's first check that we{'\n'}deliver to your address
                 </Text>
-                <LongButton style={styles.signInButton} 
+                <MultiTaskButton style={styles.signInButton} 
                                 onPress={()=> navigation.navigate('SignIn')}
                                 title='Sign IN' />
             </View>

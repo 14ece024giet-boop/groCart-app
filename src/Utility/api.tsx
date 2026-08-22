@@ -1,7 +1,5 @@
-import axios from 'axios';
-import { BASE_URL } from './apiConfig';
-import * as Keychain from 'react-native-keychain';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from './apiClient';
+import { saveAuthTokens } from './tokenStorage';
 
 type OtpResponse = {
   success: boolean;
@@ -11,69 +9,107 @@ type OtpResponse = {
     refreshToken: string;
   };
 };
-export const sendOtpApi = async (phoneNumber: string): Promise<OtpResponse> =>{
-  console.log('=== API function called ===');
-const endpoint = `${BASE_URL}/auth/send-otp`;
-console.log('Endpoint:', endpoint); 
-// Removed server listen code; not needed in client-side API utility.
-  const payload = {
-    phoneNumber,
-  };
 
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      // Add auth token or custom headers here if needed
-      // Authorization: `Bearer ${yourToken}`,
-    },
+export const sendOtpApi = async (phoneNumber: string): Promise<OtpResponse> => {
+  const endpoint = `/auth/send-otp`;
+  const payload = {
+    PhoneNumber: phoneNumber,
   };
 
   try {
-    const response = await axios.post<OtpResponse>(endpoint, payload, config);
+    const response = await apiClient.post<OtpResponse>(endpoint, payload);
     return response.data;
-  } catch (error) {
-    console.error('Error sending OTP:', error);
+  } catch (error: any) {
     throw error;
   }
 };
-
 
 export const verifyOtpApi = async (
   phoneNumber: string,
   otp: string
 ): Promise<OtpResponse> => {
-  console.log('=== Verify OTP API called ===');
-  const endpoint = `${BASE_URL}/auth/verify-otp`;
-  console.log('Endpoint:', endpoint);
-
+  const endpoint = `/auth/login-otp`;
   const payload = {
-    phoneNumber,
-    otp,
+    PhoneNumber: phoneNumber,
+    Otp: otp,
   };
 
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  try {
+    const response = await apiClient.post<any>(endpoint, payload);
+    const rawData = response.data;
 
- try {
-    const response = await axios.post<OtpResponse>(endpoint, payload, config);
-  if (response.data.success && response.data.data) {
-      const { accessToken, refreshToken } = response.data.data;
+    // Handle both wrapped { success, data: { accessToken, ... } } and direct { accessToken, ... }
+    const tokenData = rawData?.data?.accessToken ? rawData.data : (rawData?.accessToken ? rawData : null);
 
-      await AsyncStorage.setItem(
-        'authTokens',
-        JSON.stringify({ accessToken, refreshToken })
-      );
+    if (tokenData?.accessToken) {
+      const accessToken = tokenData.accessToken;
+      const refreshToken = tokenData.refreshToken;
+
+      // Store tokens securely (Keychain + AsyncStorage fallback)
+      await saveAuthTokens({ accessToken, refreshToken });
+
+      return {
+        success: true,
+        message: rawData?.message || 'Login successful',
+        data: { accessToken, refreshToken },
+      };
     }
-    return response.data; 
- }
- catch (error) {
-    console.error('Error verifying OTP:', error);
+
+    return {
+      success: rawData?.success ?? false,
+      message: rawData?.message || 'Failed to authenticate',
+      data: rawData?.data,
+    };
+  } catch (error: any) {
     throw error;
   }
 };
 
+export type RegisterUserRequest = {
+  Name: string;
+  Email: string;
+  PhoneNumber: string;
+  Password?: string;
+  Otp: string;
+};
 
+export const registerApi = async (
+  userData: Omit<RegisterUserRequest, 'Otp'>,
+  otp: string
+): Promise<OtpResponse> => {
+  const endpoint = `/auth/register`;
+  const payload: RegisterUserRequest = {
+    ...userData,
+    Otp: otp,
+  };
+
+  try {
+    const response = await apiClient.post<any>(endpoint, payload);
+    const rawData = response.data;
+
+    const tokenData = rawData?.data?.accessToken ? rawData.data : (rawData?.accessToken ? rawData : null);
+
+    if (tokenData?.accessToken) {
+      const accessToken = tokenData.accessToken;
+      const refreshToken = tokenData.refreshToken;
+
+      // Store tokens securely (Keychain + AsyncStorage fallback)
+      await saveAuthTokens({ accessToken, refreshToken });
+
+      return {
+        success: true,
+        message: rawData?.message || 'Registration successful',
+        data: { accessToken, refreshToken },
+      };
+    }
+
+    return {
+      success: rawData?.success ?? false,
+      message: rawData?.message || 'Registration failed',
+      data: rawData?.data,
+    };
+  } catch (error: any) {
+    throw error;
+  }
+};
 

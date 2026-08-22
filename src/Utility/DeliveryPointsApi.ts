@@ -1,54 +1,63 @@
-// api/deliveryPointApi.ts
+import axios from 'axios';
+import { ApiResponse, BASE_URL, getAuthHeaders } from './apiConfig';
 
-export interface DeliveryPointAddress {
-  id: number;
-  name: string;
-  address: string;
-}
-
-export interface VerifyOrderOtpRequest {
+// Verify OTP for an order
+export const verifyOrderOtpApi = async ({
+  orderId,
+  otpCode,
+}: {
   orderId: number;
   otpCode: string;
-}
-
-
-
-import axios from 'axios';
-import { ApiResponse, BASE_URL } from './apiConfig';
-
-export const getDeliveryPointsApi = async (): Promise<ApiResponse<DeliveryPointAddress[]>> => {
-  const endpoint = `${BASE_URL}/DeliveryPoint/get-all`;
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
-
+}): Promise<ApiResponse<null>> => {
+  const endpoint = `${BASE_URL}/delivery/verify-otp`;
+  const headers = await getAuthHeaders();
   try {
-    const response = await axios.post<ApiResponse<DeliveryPointAddress[]>>(endpoint, null, config);
+    const response = await axios.post<ApiResponse<null>>(
+      endpoint,
+      { orderId, otpCode },
+      { headers }
+    );
     return response.data;
   } catch (error) {
-    console.error('Error fetching delivery points:', error);
+    console.error('Error verifying order OTP:', error);
     throw error;
   }
 };
 
-export const verifyOrderOtpApi = async (
-  payload: VerifyOrderOtpRequest
-): Promise<ApiResponse<string>> => {
-  const endpoint = `${BASE_URL}/Order/verify-order-otp`;
-
+// Resend OTP for an order
+export const resendOrderOtpApi = async ({
+  orderId,
+}: {
+  orderId: number;
+}): Promise<ApiResponse<null>> => {
+  const endpoint = `${BASE_URL}/delivery/resend-otp`;
+  const headers = await getAuthHeaders();
   try {
-    const response = await axios.post<ApiResponse<string>>(endpoint, payload, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    return response.data;
-  } catch (error: any) {
-    console.error('Error verifying OTP:', error);
-    throw new Error(
-      error?.response?.data?.message || 'OTP verification failed.'
+    const response = await axios.post<ApiResponse<null>>(
+      endpoint,
+      { orderId },
+      { headers }
     );
+    return response.data;
+  } catch (error) {
+    console.error('Error resending order OTP:', error);
+    throw error;
+  }
+};
+
+// Cancel an order
+export const cancelOrderApi = async ({
+  orderId,
+}: {
+  orderId: number;
+}): Promise<ApiResponse<null>> => {
+  const endpoint = `${BASE_URL}/delivery/cancel-order`;
+  const headers = await getAuthHeaders();
+  try {
+    const response = await axios.post<ApiResponse<null>>(endpoint, { orderId }, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    throw error;
   }
 };

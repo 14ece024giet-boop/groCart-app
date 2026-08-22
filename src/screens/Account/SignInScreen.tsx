@@ -8,24 +8,31 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { RootStackParamList } from '../../navigation/navigation';
 import { useNavigation } from '@react-navigation/native';
-import { sendOtpApi } from '../../Utility/api';
+import { sendOtpApi, verifyOtpApi } from '../../Utility/api';
+import { useDispatch } from 'react-redux';
+import { fetchAndHydrateServerCart } from '../../store/slices/cartSlice';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
-const PhoneOtpScreen = () => {
+const SignInScreen = () => {
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(new Array(6).fill(''));
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [timer, setTimer] = useState(60);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   const inputs = useRef<Array<TextInput | null>>([]);
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (showOtpInput && timer > 0) {
       interval = setInterval(() => setTimer((t) => t - 1), 1000);
     }
@@ -34,53 +41,74 @@ const PhoneOtpScreen = () => {
 
   const handleNext = async () => {
     if (phone.length === 10) {
-       try {
-      const response = await sendOtpApi(phone);
-      if (response.success) {
-        alert(response.message); // "OTP sent successfully"
-      setShowOtpInput(true);
-      setTimer(60);
-    } else {
-        alert('Failed to send OTP');
+      setIsSendingOtp(true);
+      try {
+        // OTP bypassed for testing — directly login with dummy OTP
+        const response = await verifyOtpApi(phone, '000000');
+        if (response.success) {
+          dispatch(fetchAndHydrateServerCart() as any);
+          navigation.navigate('Main');
+        } else {
+          Alert.alert('Error', response.message || 'Login failed');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'An error occurred during login.');
+        console.error(error);
+      } finally {
+        setIsSendingOtp(false);
       }
-    } catch (error) {
-      alert('Error sending OTP');
-      console.error(error);
-    }
-  } else {
-      alert('Enter valid 10 digit phone number');
+    } else {
+      Alert.alert('Invalid Input', 'Please enter a valid 10-digit phone number.');
     }
   };
 
   const handleOtpChange = (text: string, index: number) => {
-    if (/^\d*$/.test(text)) {
+    const newDigit = text.length > 1 ? text.slice(-1) : text;
+
+    if (/^\d*$/.test(newDigit)) {
       const newOtp = [...otp];
-      newOtp[index] = text;
+      newOtp[index] = newDigit;
       setOtp(newOtp);
 
-      if (text && index < 3) {
+      if (newDigit && index < 5) {
         inputs.current[index + 1]?.focus();
       }
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const enteredOtp = otp.join('');
-    // TODO: call verifyOtpApi(phone, enteredOtp)
-    // For now, use hardcoded OTP '1234' for testing
-    if (enteredOtp === '1234') {
-    //   alert('OTP verified successfully!');
-        navigation.navigate('Main');  // Navigate to main screen after verification
+    if (enteredOtp.length === 6) {
+      setIsVerifyingOtp(true);
+      try {
+        const response = await verifyOtpApi(phone, enteredOtp);
+        if (response.success) {
+          dispatch(fetchAndHydrateServerCart() as any);
+          navigation.navigate('Main');
+        } else {
+          Alert.alert('Verification Failed', response.message || 'Invalid OTP');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'An error occurred during OTP verification.');
+        console.error(error);
+      } finally {
+        setIsVerifyingOtp(false);
+      }
     } else {
-      alert('Invalid OTP');
+      Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setTimer(60);
-    setOtp(['', '', '', '']);
+    setOtp(new Array(6).fill(''));
     inputs.current[0]?.focus();
-    // TODO: resend OTP API call
+    try {
+      await sendOtpApi(phone);
+      Alert.alert('Success', 'A new OTP has been sent.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to resend OTP.');
+    }
   };
 
   return (
@@ -103,17 +131,21 @@ const PhoneOtpScreen = () => {
             onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ''))}
             autoFocus
           />
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>NEXT</Text>
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isSendingOtp}>
+            {isSendingOtp ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.nextButtonText}>NEXT</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
-  style={styles.signUpContainer}
-  onPress={() => navigation.navigate('CreateAccount')}
->
-  <Text style={styles.signUpText}>
-    Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
-  </Text>
-</TouchableOpacity>
+            style={styles.signUpContainer}
+            onPress={() => navigation.navigate('CreateAccount')}
+          >
+            <Text style={styles.signUpText}>
+              Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
+            </Text>
+          </TouchableOpacity>
         </>
       ) : (
         <>
@@ -122,14 +154,14 @@ const PhoneOtpScreen = () => {
             Please type the verification code sent to +91 {phone}
           </Text>
           <View style={styles.otpContainer}>
-            {otp.map((digit, idx) => (
+            {[...Array(6)].map((_, idx) => (
               <TextInput
                 key={idx}
                 ref={(el) => {
                   inputs.current[idx] = el;
                 }}
                 style={styles.otpInput}
-                value={digit}
+                value={otp[idx]}
                 onChangeText={(text) => handleOtpChange(text, idx)}
                 maxLength={1}
                 keyboardType="number-pad"
@@ -141,12 +173,16 @@ const PhoneOtpScreen = () => {
           <TouchableOpacity
             style={[
               styles.verifyButton,
-              { opacity: otp.some((d) => d === '') ? 0.5 : 1 },
+              { opacity: otp.some((d) => d === '') || isVerifyingOtp ? 0.5 : 1 },
             ]}
-            disabled={otp.some((d) => d === '')}
+            disabled={otp.some((d) => d === '') || isVerifyingOtp}
             onPress={handleVerify}
           >
-            <Text style={styles.verifyButtonText}>VERIFY ACCOUNT</Text>
+            {isVerifyingOtp ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.verifyButtonText}>VERIFY ACCOUNT</Text>
+            )}
           </TouchableOpacity>
           <Text style={styles.timerText}>
             Resend Code in : 00:{timer < 10 ? `0${timer}` : timer}
@@ -209,7 +245,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   otpInput: {
-    width: 56,
+    width: 48,
     height: 56,
     borderRadius: 8,
     borderWidth: 1,
@@ -248,7 +284,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-    signUpContainer: {
+  signUpContainer: {
     marginTop: 32,
     alignItems: 'center',
   },
@@ -262,6 +298,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-
-
+export default SignInScreen;

@@ -5,8 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/navigation';
 
-// type NavigationProp = StackNavigationProp<RootStackParamList, 'QRScanner'>;
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type NavigationProp = StackNavigationProp<RootStackParamList, 'TestQRScannerButtonScreen'>;
 
 const TestQRScannerButtonScreen = () => {
   const navigation = useNavigation<NavigationProp>();

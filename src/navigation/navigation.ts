@@ -10,12 +10,21 @@ export type RootStackParamList = {
   Search: undefined;
   Profile: undefined;
   EditProfile: undefined;
+  ManageAddress: undefined;
   Orders: undefined;
   OrderTracking: { orderId: string };
   // ✅ fixed name below
   ProductDetails: { productId: string; sectionType?: 'bestSelling' | 'exclusive' };
   PhoneVerification: undefined;
-  OtpVerification: { phoneNumber: string };
+  OtpVerification: {
+    phoneNumber?: string; // For login flow
+    userData?: {
+      Name: string;
+      Email: string;
+      PhoneNumber: string;
+      Password?: string;
+    }; // For registration flow
+  };
   CheckoutDetails: { couponCode?: string };
   OrderConfirmation: { qrCodeUrl: string };
   DeliveryOrderDetails: { orderId: number };

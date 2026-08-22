@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,28 +7,82 @@ import {
   Image,
   Alert,
   StyleSheet,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LongButton from '../../components/LongButton';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigation/navigation';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
+import { getUserProfileApi, updateUserProfileApi } from '../../Utility/userProfileApi';
 
-export default function EditProfileScreen({ navigation }) {
+type EditProfileScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'EditProfile'
+>;
+
+type Props = {
+  navigation: EditProfileScreenNavigationProp;
+};
+
+export default function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
-  const [name, setName] = useState('Akshay Syal');
-  const [email, setEmail] = useState('syalfreelance@gmail.com');
-  const [phone, setPhone] = useState('+91 98765 XXXX');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const isValid = (text: string) => text.length > 3;
 
-  const handleSave = useCallback(() => {
-    // Replace this with an API call if needed
-    Alert.alert('Profile Updated', 'Your profile has been successfully saved.');
-    navigation.goBack();
-  }, [name, email, phone]);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getUserProfileApi();
+        if (response.success && response.data) {
+          setName(response.data.name);
+          setEmail(response.data.email);
+          setPhone(response.data.phoneNumber);
+        } else {
+          Alert.alert('Error', response.message || 'Could not load profile.');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'An unexpected error occurred.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const response = await updateUserProfileApi({ name, email, phoneNumber: phone });
+      if (response.success) {
+        Alert.alert('Profile Updated', 'Your profile has been successfully saved.');
+        navigation.goBack();
+      } else {
+        Alert.alert('Update Failed', response.message || 'Could not save profile.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred while saving.');
+    } finally {
+      setSaving(false);
+    }
+  }, [name, email, phone, navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#FF6347" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -98,10 +152,11 @@ export default function EditProfileScreen({ navigation }) {
         </View>
 
         {/* Save Button */}
-        <LongButton
+        <MultiTaskButton
           title="SAVE"
           onPress={handleSave}
           style={styles.saveBtn}
+          loading={saving}
         />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -109,6 +164,12 @@ export default function EditProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

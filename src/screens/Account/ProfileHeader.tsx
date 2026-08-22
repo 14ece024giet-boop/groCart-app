@@ -9,7 +9,13 @@ import {
 
 const { width } = Dimensions.get('window');
 
-export default function ProfileHeader({ name, email, phone }) {
+interface ProfileHeaderProps {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export default function ProfileHeader({ name, email, phone }: ProfileHeaderProps) {
   return (
     <View style={styles.container}>
       {/* Background wave shape */}
@@ -18,7 +24,8 @@ export default function ProfileHeader({ name, email, phone }) {
       {/* Profile content */}
       <View style={styles.profileContent}>
         <Image
-          // source={require('../../../assets/grocery-banner.png')}
+          // TODO: Use profile.profilePictureUrl when it's available from the API
+          source={require('../../../assets/grocery-banner.png')}
           style={styles.avatar}
         />
         <Text style={styles.name}>{name}</Text>

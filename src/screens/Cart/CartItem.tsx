@@ -49,7 +49,7 @@ const CartItem = ({ item }: Props) => {
           {item.discountPrice && item.discountPrice < item.price ? (
             <>
               <Text style={styles.oldPrice}>{item.price.toFixed(2)}</Text>
-              <Text style={styles.newPrice}>{(item.price-item.discountPrice).toFixed(2)}</Text>
+              <Text style={styles.newPrice}>{item.discountPrice.toFixed(2)}</Text>
             </>
           ) : (
             <Text style={styles.newPrice}>${item.price.toFixed(2)}</Text>
@@ -84,7 +84,7 @@ const CartItem = ({ item }: Props) => {
             {totalOriginal !== totalDiscounted && (
               <Text style={styles.oldTotal}>{totalOriginal.toFixed(2)}</Text>
             )}
-            <Text style={styles.newTotal}>{(totalOriginal-totalDiscounted).toFixed(2)}</Text>
+            <Text style={styles.newTotal}>{totalDiscounted.toFixed(2)}</Text>
           </View>
       </View>
     </View>

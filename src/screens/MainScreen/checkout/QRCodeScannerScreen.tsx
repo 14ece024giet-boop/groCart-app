@@ -4,12 +4,10 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import CryptoJS from 'crypto-js';
+import { DECRYPTION_IV, DECRYPTION_SECRET_KEY } from '../../../Utility/cryptoConfig';
 import { RootStackParamList } from '../../../navigation/navigation';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'QRScanner'>;
-
-const SECRET_KEY = 'your-32-char-long-secret-key!!!!';
-const IV = '1234567890ABCDEF';
 
 const QRScannerScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -24,8 +22,8 @@ const QRScannerScreen = () => {
 
   const decryptOrderId = (encrypted: string): string => {
     try {
-      const key = CryptoJS.enc.Utf8.parse(SECRET_KEY);
-      const iv = CryptoJS.enc.Utf8.parse(IV);
+      const key = CryptoJS.enc.Utf8.parse(DECRYPTION_SECRET_KEY);
+      const iv = CryptoJS.enc.Utf8.parse(DECRYPTION_IV);
       const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
         iv,
         mode: CryptoJS.mode.CBC,
@@ -40,20 +38,20 @@ const QRScannerScreen = () => {
   };
 
   const handleBarcodeScanned = (scanningResult: { data: string }) => {
-    if (scanned) return;
-
+    setScanned(true);
     try {
-      setScanned(true);
       const decryptedOrderId = decryptOrderId(scanningResult.data);
       if (!decryptedOrderId || isNaN(Number(decryptedOrderId))) {
         throw new Error('Invalid QR code');
       }
+
       navigation.navigate('DeliveryOrderDetails', {
         orderId: Number(decryptedOrderId),
       });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to scan QR Code');
-      setScanned(false);
+      Alert.alert('Scan Failed', error.message || 'Could not read the QR Code.', [
+        { text: 'Scan Again', onPress: () => setScanned(false) },
+      ]);
     }
   };
 
@@ -74,7 +72,7 @@ const QRScannerScreen = () => {
       <CameraView facing = "back"
         style={StyleSheet.absoluteFillObject}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={handleBarcodeScanningResult => handleBarcodeScanned(handleBarcodeScanningResult)}
+        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
       />
       {scanned && (
         <View style={styles.overlay}>
@@ -109,22 +107,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-
-
-export const decryptOrderId = (encrypted: string): string => {
-  try {
-    const decrypted = CryptoJS.AES.decrypt(encrypted, SECRET_KEY, {
-      iv: IV,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7,
-    });
-
-    const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
-
-    return plaintext;
-  } catch (error) {
-    console.error('Decryption failed:', error);
-    return '';
-  }
-};

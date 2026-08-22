@@ -10,12 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import LongButton from '../../components/LongButton';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/navigation';
 import { Alert } from 'react-native';
 
+
+import { sendOtpApi } from '../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'CreateAccount'>;
 
@@ -30,13 +32,7 @@ const CreateAccountScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const isFormValid = 
-  name.trim().length > 0 &&
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-  /^[0-9]{10,15}$/ &&
-  password.length >= 6 &&
-  password === confirmPassword;
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,27 +62,45 @@ const CreateAccountScreen = () => {
 };
 
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
+    if (!validateForm()) return;
 
-    //  if (!validateForm()) return;
-    // TODO: Replace with actual API call
-    const payload = {
-      name,
-      phoneNumber,
-      email,
-      password,
-    };
+    setIsLoading(true);
+    try {
+      // OTP bypassed for testing — directly register with dummy OTP
+      const { registerApi } = require('../../Utility/api');
+      const response = await registerApi(
+        {
+          Name: name,
+          Email: email,
+          PhoneNumber: phoneNumber,
+          Password: password,
+        },
+        '000000'
+      );
+      if (response.success) {
+        Alert.alert('Success', 'Account created successfully!');
+        navigation.navigate('Main');
+      } else {
+        Alert.alert('Registration Failed', response.message || 'Registration failed.');
+      }
+    } catch (error: any) {
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'An error occurred during registration.';
 
-    console.log('Creating user with data:', payload);
- // Uncomment for real use:
-  // try {
-  //   const res = await axios.post('https://yourapi/signup', payload);
-  //   navigation.navigate('Main');
-  // } catch (err) {
-  //   Alert.alert('Sign Up Failed', 'Please check your details');
-  // }
-    // Navigate or show feedback here
-    navigation.navigate('PhoneVerification'); // Placeholder
+      if (serverMessage.toLowerCase().includes('already exists')) {
+        Alert.alert('Account Exists', serverMessage, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => navigation.navigate('SignIn') },
+        ]);
+      } else {
+        Alert.alert('Registration Failed', serverMessage);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -110,7 +124,7 @@ const CreateAccountScreen = () => {
               placeholder="Full Name"
               value={name}
               onChangeText={setName}
-              placeholderTextColor="Ajit"
+              placeholderTextColor="#999"
               autoCapitalize="none"
             />
         </View>
@@ -188,12 +202,14 @@ const CreateAccountScreen = () => {
         </View>
 
         {/* Sign Up Button */}
-            <LongButton
+            <MultiTaskButton
             title="SIGN UP"
             onPress={handleSignUp}
+            loading={isLoading}
             style={[
                 styles.signUpButton,
             ]}
+            disabled={isLoading}
             />
 
 
@@ -202,7 +218,7 @@ const CreateAccountScreen = () => {
           <Text style={styles.signInText}>
             Already have an account?{' '}
             <Text
-              onPress={() => navigation.navigate('PhoneVerification')}
+              onPress={() => navigation.navigate('SignIn')}
               style={styles.signInLink}
             >
               Sign In

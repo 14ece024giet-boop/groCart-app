@@ -1,6 +1,6 @@
 // screens/CheckoutScreen.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,12 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../../navigation/navigation';
 import { createOrderApi } from '../../../Utility/orderService';
 import { getUserAddressApi, UserAddressDto } from '../../../Utility/userAddressApi';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { clearCart } from '../../../store/slices/cartSlice'; // ✅ Import cart reset action
+import { clearCart } from '../../../store/slices/cartSlice';
 
 type CheckoutDetailsRouteProp = RouteProp<RootStackParamList, 'CheckoutDetails'>;
 type CheckoutScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CheckoutDetails'>;
@@ -42,54 +42,57 @@ const CheckoutScreen = () => {
 
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(true);
 
   const [userAddress, setUserAddress] = useState<UserAddressDto | null>(null);
-  const [recipientName, setRecipientName] = useState('');
-  const [roomNumber, setRoomNumber] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
 
   const couponCode = route.params?.couponCode || '';
   const deliveryType: 'COD' = 'COD';
   const deliveryFee = 5;
 
-  // ✅ Calculate prices
+  // Calculate prices
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const totalAfterDiscount = cartItems.reduce(
     (acc, item) => acc + item.discountPrice * item.quantity,
     0
   );
-  const discountAmount = totalAfterDiscount;
-  const grandTotal = subtotal - totalAfterDiscount + deliveryFee;
+  const discountAmount = subtotal - totalAfterDiscount;
+  const grandTotal = totalAfterDiscount + deliveryFee;
 
-  // ✅ Fetch user address once
-  useEffect(() => {
-    const fetchUserAddress = async () => {
-      try {
-        const response = await getUserAddressApi();
-        if (response.success && response.data) {
-          const data = response.data;
-          setUserAddress(data);
-          setRecipientName(data.userName || '');
-          setRoomNumber(data.roomNumber || '');
-        }
-      } catch (err: any) {
-        console.error('Failed to load user address:', err.message);
+  // Fetch saved profile delivery address (refresh when screen comes into focus)
+  const fetchAddress = async () => {
+    setIsLoadingAddress(true);
+    try {
+      const response = await getUserAddressApi();
+      if (response?.success && response?.data) {
+        setUserAddress(response.data);
+      } else {
+        setUserAddress(null);
       }
-    };
+    } catch (err: any) {
+      console.error('Failed to load user address:', err.message);
+    } finally {
+      setIsLoadingAddress(false);
+    }
+  };
 
-    fetchUserAddress();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchAddress();
+    }, [])
+  );
 
   const buildOrderPayload = (): OrderPayload => ({
-    items: cartItems.map(item => ({
+    items: cartItems.map((item) => ({
       productId: String(item.id),
       quantity: item.quantity,
     })),
     deliveryType,
-    deliveryPointId: Number(userAddress!.deliveryPointId),
-    recipientName,
-    roomNumber: roomNumber || '',
-    additionalInfo: additionalInfo || '',
+    deliveryPointId: Number(userAddress?.deliveryPointId || 0),
+    recipientName: userAddress?.userName || '',
+    roomNumber: userAddress?.roomNumber || '',
+    additionalInfo: additionalInfo.trim(),
     ...(couponCode ? { couponCode } : {}),
   });
 
@@ -105,8 +108,27 @@ const CheckoutScreen = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!userAddress?.deliveryPointId) {
-      Alert.alert('Delivery point is missing from your profile.');
+    if (!userAddress || !userAddress.deliveryPointId) {
+      Alert.alert(
+        'Address Required',
+        'Please configure your delivery address before placing an order.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Set Address', onPress: () => navigation.navigate('ManageAddress') },
+        ]
+      );
+      return;
+    }
+
+    if (!userAddress.roomNumber?.trim()) {
+      Alert.alert(
+        'Room Number Required',
+        'Please enter your room / flat number in your profile address.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Update Address', onPress: () => navigation.navigate('ManageAddress') },
+        ]
+      );
       return;
     }
 
@@ -115,10 +137,10 @@ const CheckoutScreen = () => {
       const result = await createOrderApi(payload);
 
       if (result.success) {
-        // ✅ Clear cart after successful order
+        // Clear cart after successful order
         dispatch(clearCart());
 
-        // ✅ Navigate to order confirmation screen
+        // Navigate to order confirmation screen
         navigation.navigate('OrderConfirmation', {
           qrCodeUrl: result.data?.qrCodeUrl ?? '',
         });
@@ -129,60 +151,109 @@ const CheckoutScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <Text style={styles.heading}>Checkout Details</Text>
 
-          {/* Address Details */}
-          <View style={{ marginTop: 20 }}>
-            <Text style={styles.label}>Recipient Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter recipient name"
-              value={recipientName}
-              onChangeText={setRecipientName}
-            />
+          {/* User's Profile Delivery Address Card */}
+          {isLoadingAddress ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="small" color="#FF5A4D" />
+              <Text style={styles.loadingBoxText}>Loading delivery address...</Text>
+            </View>
+          ) : userAddress ? (
+            <View style={styles.addressCard}>
+              <View style={styles.addressCardHeader}>
+                <View style={styles.addressTitleRow}>
+                  <Text style={styles.locationIcon}>📍</Text>
+                  <Text style={styles.addressCardTitle}>Delivery Address</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ManageAddress')}
+                  style={styles.changeButton}
+                >
+                  <Text style={styles.changeButtonText}>Change</Text>
+                </TouchableOpacity>
+              </View>
 
-            <Text style={styles.label}>Room Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter room number"
-              value={roomNumber}
-              onChangeText={setRoomNumber}
-            />
+              <View style={styles.addressDetails}>
+                <Text style={styles.deliveryPointName}>
+                  {userAddress.deliveryPointAddress || 'Authorized Delivery Point'}
+                </Text>
 
-            <Text style={styles.label}>Additional Info</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Room / Flat:</Text>
+                  <Text style={styles.infoValue}>{userAddress.roomNumber || 'Not specified'}</Text>
+                </View>
+
+                {userAddress.userName ? (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Contact:</Text>
+                    <Text style={styles.infoValue}>
+                      {userAddress.userName}{' '}
+                      {userAddress.phoneNumber ? `(${userAddress.phoneNumber})` : ''}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.emptyAddressCard}>
+              <Text style={styles.emptyAddressTitle}>⚠️ No Saved Address</Text>
+              <Text style={styles.emptyAddressDesc}>
+                You have not configured a delivery point yet. Please select an authorized delivery point to proceed.
+              </Text>
+              <TouchableOpacity
+                style={styles.addAddressButton}
+                onPress={() => navigation.navigate('ManageAddress')}
+              >
+                <Text style={styles.addAddressButtonText}>+ Set Delivery Address</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Optional Additional Instructions */}
+          <View style={styles.notesSection}>
+            <Text style={styles.notesLabel}>Delivery Instructions (Optional)</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Additional instructions (optional)"
+              style={styles.notesInput}
+              placeholder="e.g. Call upon arriving at lobby desk"
               value={additionalInfo}
               onChangeText={setAdditionalInfo}
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={2}
             />
           </View>
 
           {/* Pricing Summary */}
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
-              <Text>Subtotal</Text>
-              <Text>{subtotal.toFixed(2)}</Text>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>₹{subtotal.toFixed(2)}</Text>
             </View>
 
             <View style={styles.summaryRow}>
-              <Text>Discount</Text>
-              <Text style={{ color: '#0a0' }}>-{discountAmount.toFixed(2)}</Text>
+              <Text style={styles.summaryLabel}>Discount</Text>
+              <Text style={[styles.summaryValue, { color: '#00A86B' }]}>
+                -₹{discountAmount.toFixed(2)}
+              </Text>
             </View>
 
             <View style={styles.separator} />
 
             <View style={styles.summaryRow}>
-              <Text>Delivery Fee</Text>
-              <Text>{deliveryFee.toFixed(2)}</Text>
+              <Text style={styles.summaryLabel}>Delivery Fee</Text>
+              <Text style={styles.summaryValue}>₹{deliveryFee.toFixed(2)}</Text>
             </View>
 
             <View style={styles.summaryRowTotal}>
               <Text style={styles.totalLabel}>Grand Total</Text>
-              <Text style={styles.totalValue}>{grandTotal.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
             </View>
           </View>
 
@@ -191,11 +262,12 @@ const CheckoutScreen = () => {
             style={[styles.placeOrderButton, isPlacingOrder && { opacity: 0.7 }]}
             onPress={handlePlaceOrder}
             disabled={isPlacingOrder}
+            activeOpacity={0.85}
           >
             {isPlacingOrder ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.placeOrderButtonText}>Place Order</Text>
+              <Text style={styles.placeOrderButtonText}>Place Order (COD)</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -214,75 +286,205 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 54,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 30,
+    marginBottom: 20,
     color: '#111',
   },
-  label: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
+  loadingBox: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
     marginBottom: 16,
+  },
+  loadingBoxText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: '#666',
+  },
+  addressCard: {
+    backgroundColor: '#FFF8F7',
+    borderWidth: 1.5,
+    borderColor: '#FFD6D1',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+  },
+  addressCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE5E1',
+    paddingBottom: 8,
+  },
+  addressTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationIcon: {
     fontSize: 16,
+    marginRight: 6,
+  },
+  addressCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
     color: '#333',
   },
-  summaryContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: '#f9f9f9',
+  changeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: '#FF5A4D',
+    borderRadius: 6,
+  },
+  changeButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  addressDetails: {
+    marginTop: 2,
+  },
+  deliveryPointName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FF5A4D',
+    marginBottom: 6,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: '#777',
+    width: 90,
+  },
+  infoValue: {
+    fontSize: 13,
+    color: '#222',
+    fontWeight: '600',
+    flex: 1,
+  },
+  emptyAddressCard: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  emptyAddressTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#B45309',
+    marginBottom: 6,
+  },
+  emptyAddressDesc: {
+    fontSize: 13,
+    color: '#78350F',
+    textAlign: 'center',
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  addAddressButton: {
+    backgroundColor: '#FF5A4D',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  addAddressButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  notesSection: {
+    marginBottom: 16,
+  },
+  notesLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 6,
+  },
+  notesInput: {
+    borderWidth: 1.5,
+    borderColor: '#E8E8E8',
     borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#333',
+    backgroundColor: '#FAFAFA',
+    minHeight: 50,
+  },
+  summaryContainer: {
+    padding: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#E5E7EB',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  summaryValue: {
+    fontSize: 14,
+    color: '#222',
+    fontWeight: '600',
+  },
   separator: {
     height: 1,
-    backgroundColor: '#E6E6E6',
+    backgroundColor: '#E5E7EB',
     marginVertical: 10,
   },
   summaryRowTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E5E7EB',
   },
   totalLabel: {
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 17,
     color: '#111',
   },
   totalValue: {
     fontWeight: 'bold',
     fontSize: 18,
-    color: '#f33',
+    color: '#FF5A4D',
   },
   placeOrderButton: {
-    backgroundColor: '#f33',
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginTop: 30,
+    backgroundColor: '#FF5A4D',
+    paddingVertical: 16,
+    borderRadius: 10,
+    marginTop: 24,
     alignItems: 'center',
+    shadowColor: '#FF5A4D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   placeOrderButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+    letterSpacing: 0.5,
   },
 });

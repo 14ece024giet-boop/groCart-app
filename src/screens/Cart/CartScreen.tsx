@@ -33,7 +33,7 @@ const CartScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Cart</Text>
-        <Text style={styles.headerCount}>Total 4</Text>
+        <Text style={styles.headerCount}>Total {cartItems.length}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {cartItems.map((item) => (

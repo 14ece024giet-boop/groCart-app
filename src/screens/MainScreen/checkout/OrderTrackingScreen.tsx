@@ -1,22 +1,35 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../../../navigation/navigation';
+import { getOrderTimelineApi, OrderTimeline, TimelineEvent } from '../../../Utility/orderTrackingApi';
 
 const STEPS = ['Pending', 'Confirmed', 'Picked', 'Shipped', 'Delivered'];
 
-const TIMELINE = [
-  { time: '08 May 09:43 AM', text: 'Order no. #876543 was confirmed, please check your account' },
-  { time: '09 May 10:00 AM', text: 'Order no. #876543 was picked, please check your State' },
-  { time: '09 May 10:34 AM', text: 'Order no. #876543 was shipped in your nearest delivery area.' },
-  { time: '10 May 08:21 AM', text: 'Package has been delivered.' },
-];
+type OrderTrackingRouteProp = RouteProp<RootStackParamList, 'OrderTracking'>;
 
 export default function OrderTrackingScreen() {
-  const currentStep = 4; // 0-based index for "Delivered"
+  const route = useRoute<OrderTrackingRouteProp>();
+  const { orderId } = route.params;
+
+  const [timelineData, setTimelineData] = useState<OrderTimeline | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const currentStepIndex = timelineData ? STEPS.indexOf(timelineData.currentStatus) : -1;
 
   // Horizontal stepper render
   const renderStep = (step: string, index: number) => {
-    const isActive = index < currentStep;
-    const isCurrent = index === currentStep;
+    const isActive = index < currentStepIndex;
+    const isCurrent = index === currentStepIndex;
 
     return (
       <View key={step} style={styles.stepWrapper}>
@@ -33,7 +46,7 @@ export default function OrderTrackingScreen() {
             <View
               style={[
                 styles.stepLine,
-                index < currentStep - 1 ? styles.activeLine : styles.inactiveLine,
+                index < currentStepIndex - 1 ? styles.activeLine : styles.inactiveLine,
               ]}
             />
           )}
@@ -46,9 +59,9 @@ export default function OrderTrackingScreen() {
   };
 
   // Vertical timeline render
-  const renderTimelineItem = ({ item, index }: { item: typeof TIMELINE[0]; index: number }) => {
-    const isLastItem = index === TIMELINE.length - 1;
-    const isActiveStep = index < currentStep;
+  const renderTimelineItem = ({ item, index }: { item: TimelineEvent; index: number }) => {
+    const isLastItem = index === (timelineData?.timeline.length ?? 0) - 1;
+    const isActiveStep = index < currentStepIndex;
 
     return (
       <View style={styles.timelineItem}>
@@ -63,7 +76,7 @@ export default function OrderTrackingScreen() {
             <View
               style={[
                 styles.timelineLine,
-                index < currentStep - 1 ? styles.timelineLineActive : styles.timelineLineInactive,
+                index < currentStepIndex - 1 ? styles.timelineLineActive : styles.timelineLineInactive,
               ]}
             />
           )}
@@ -76,11 +89,46 @@ export default function OrderTrackingScreen() {
     );
   };
 
+  useEffect(() => {
+    const fetchTimeline = async () => {
+      try {
+        const response = await getOrderTimelineApi(orderId);
+        if (response.success) {
+          setTimelineData(response.data);
+        } else {
+          Alert.alert('Error', response.message || 'Could not fetch order timeline.');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'An unexpected error occurred.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimeline();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={activeColor} />
+      </View>
+    );
+  }
+
+  if (!timelineData) {
+    return (
+      <View style={styles.centered}>
+        <Text>Could not load order details.</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Horizontal Stepper */}
       <View style={styles.stepperContainer}>
-        {STEPS.map((step, idx) => renderStep(step, idx))}
+        {STEPS.map(renderStep)}
       </View>
 
       {/* Order Process Header */}
@@ -88,7 +136,7 @@ export default function OrderTrackingScreen() {
 
       {/* Vertical Timeline */}
       <FlatList
-        data={TIMELINE}
+        data={timelineData.timeline}
         keyExtractor={(_, idx) => idx.toString()}
         renderItem={renderTimelineItem}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -111,6 +159,11 @@ const circleSize = 16;
 const activeColor = '#FF6347'; // tomato red
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 20 },
   stepperContainer: {
     flexDirection: 'row',

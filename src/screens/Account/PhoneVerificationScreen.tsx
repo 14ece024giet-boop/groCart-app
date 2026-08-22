@@ -11,8 +11,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/navigation';
-import LongButton from '../../components/LongButton';
-import { Alert } from 'react-native/Libraries/Alert/Alert';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
+import { Alert } from 'react-native';
 import { sendOtpApi } from '../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'PhoneVerification'>;
@@ -24,22 +24,20 @@ const PhoneVerificationScreen = () => {
   const isValidPhone = phone.length === 10;
 
   const handleNext = async () => {
-      if (phone.length === 10) {
-         navigation.navigate('OtpVerification', { phoneNumber: phone });
-
-         try {
+    if (isValidPhone) {
+      try {
         const response = await sendOtpApi(phone);
         if (response.success) {
-         navigation.navigate('OtpVerification', { phoneNumber: phone });
+          navigation.navigate('OtpVerification', { phoneNumber: phone });
         } else {
-          alert('Failed to send OTP');
+          Alert.alert('Error', response.message || 'Failed to send OTP');
         }
       } catch (error) {
-        alert('Error sending OTP');
+        Alert.alert('Error', 'An error occurred while sending OTP.');
         console.error(error);
       }
     } else {
-      alert('Enter valid 10 digit phone number');
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
     }
   };
 
@@ -52,7 +50,7 @@ const PhoneVerificationScreen = () => {
         <Text style={styles.backArrow}>{'<'}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Your Mobile Number  IS </Text>
+      <Text style={styles.title}>Your Mobile Number</Text>
       <Text style={styles.subtitle}>
         We will send an SMS with a confirmation{'\n'}code to this number
       </Text>
@@ -66,12 +64,12 @@ const PhoneVerificationScreen = () => {
           keyboardType="number-pad"
           maxLength={10}
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ''))}
           placeholderTextColor="#b0b0b0"
         />
       </View>
 
-      <LongButton
+      <MultiTaskButton
         title="NEXT"
         onPress={handleNext}
         disabled={!isValidPhone}

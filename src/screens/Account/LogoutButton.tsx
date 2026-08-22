@@ -1,9 +1,9 @@
 import React from 'react';
-import LongButton from '../../components/LongButton';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
 
 export default function LogoutButton({ onLogout }: { onLogout: () => void }) {
   return (
-    <LongButton
+    <MultiTaskButton
       title="Logout"
       onPress={onLogout}
       style={{

@@ -1,19 +1,14 @@
 export interface ProductDetails {
-  image: any;
-  title: ReactNode;
   id: number;
   name: string;
-  imageUrl: string;
-
+  description: string;
   price: number;
   discountPrice: number;
-
+  imageUrl: string;
   unitSize: string;
-  description: string;
-
-  categoryName: string;
   brandName: string;
-
+  categoryName: string;
   isBestSelling: boolean;
   isExclusive: boolean;
+  image?: any; // To handle legacy 'image' property if it exists
 }

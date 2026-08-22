@@ -9,22 +9,27 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/navigation';
-import LongButton from '../../components/LongButton';
-import { verifyOtpApi } from '../../Utility/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import MultiTaskButton from '../../components/Components/shared/MultiTaskButton';
+import { registerApi, sendOtpApi, verifyOtpApi } from '../../Utility/api';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'OtpVerification'>;
+type OtpVerificationRouteProp = RouteProp<RootStackParamList, 'OtpVerification'>;
 
-const OtpVerificationScreen = ({ route }: any) => {
+const OtpVerificationScreen = ({
+  route,
+}: {
+  route: OtpVerificationRouteProp;
+}) => {
   const navigation = useNavigation<NavigationProp>();
   const [code, setCode] = useState(new Array(6).fill(''));
   const [timer, setTimer] = useState(60);
 
   const inputs = useRef<Array<TextInput | null>>([]);
-  const phone = route?.params?.phoneNumber || '';
+  const { phoneNumber, userData } = route?.params || {};
+  const phone = phoneNumber || userData?.PhoneNumber || '';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,25 +48,48 @@ const OtpVerificationScreen = ({ route }: any) => {
     }
   };
 
+  const handleKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && code[index] === '' && index > 0) {
+      inputs.current[index - 1]?.focus();
+    }
+  };
+
   const handleSubmit = async () => {
     const otp = code.join('');
     if (otp.length !== 6) {
       Alert.alert('Error', 'Please enter a valid 6-digit code.');
       return;
     }
-    navigation.navigate('Main');
 
     try {
-      const response = await verifyOtpApi(phone, otp);
+      let response;
+      if (userData) {
+        response = await registerApi(userData, otp);
+      } else {
+        response = await verifyOtpApi(phone, otp);
+      }
 
       if (response.success) {
-        Alert.alert('Success', response.message);
-    navigation.navigate('Main');
+        Alert.alert('Success', response.message || 'Verification successful!');
+        navigation.navigate('Main');
       } else {
-        Alert.alert('Failed', response.message);
+        Alert.alert('Failed', response.message || 'Invalid OTP or user data.');
       }
     } catch (error) {
-      Alert.alert('Error', 'OTP verification failed.');
+      Alert.alert('Error', 'An unexpected error occurred during verification.');
+    }
+  };
+
+  const handleResend = async () => {
+    setTimer(60);
+    setCode(new Array(6).fill(''));
+    inputs.current[0]?.focus();
+    try {
+      await sendOtpApi(phone);
+      Alert.alert('Success', 'A new OTP has been sent.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to resend OTP.');
+      console.error('Resend OTP error:', error);
     }
   };
 
@@ -116,6 +144,7 @@ const OtpVerificationScreen = ({ route }: any) => {
             value={digit}
             onChangeText={(text) => handleChange(text.replace(/[^0-9]/g, ''), index)}
             maxLength={1}
+            onKeyPress={(e) => handleKeyPress(e, index)}
             keyboardType="number-pad"
             returnKeyType="next"
             autoFocus={index === 0}
@@ -123,7 +152,7 @@ const OtpVerificationScreen = ({ route }: any) => {
         ))}
       </View>
 
-      <LongButton
+      <MultiTaskButton
         title="VERIFY ACCOUNT"
         onPress={handleSubmit}
         disabled={code.some((digit) => digit === '')}
@@ -136,6 +165,11 @@ const OtpVerificationScreen = ({ route }: any) => {
       <Text style={styles.timerText}>
         Resend Code in : 00:{timer < 10 ? `0${timer}` : timer}
       </Text>
+      {timer === 0 && (
+        <TouchableOpacity onPress={handleResend}>
+          <Text style={styles.resendText}>Resend Code</Text>
+        </TouchableOpacity>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -201,6 +235,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     color: '#999',
+  },
+  resendText: {
+    color: '#FF5A4D',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
 
