@@ -1,0 +1,11 @@
+# EAS ignore file - let EAS regenerate clean native projects during cloud build
+android/
+ios/
+node_modules/
+.expo/
+dist/
+web-build/
+GroCartAPI/
+GroCart_WebApp/
+.vs/
+.vscode/

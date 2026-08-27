@@ -30,7 +30,17 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-barcode-scanner"
-    ]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GroCart to access your camera to scan barcodes and product codes."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d0287596-2141-4eb2-bcab-1a9f3d7831ae"
+      }
+    }
   }
 }
