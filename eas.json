@@ -16,7 +16,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://uat-api.grocart.com/api"
+        "EXPO_PUBLIC_API_URL": "https://grocartapi.onrender.com/api"
       }
     },
     "production": {
@@ -24,7 +24,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.grocart.com/api"
+        "EXPO_PUBLIC_API_URL": "https://grocartapi.onrender.com/api"
       }
     }
   },
