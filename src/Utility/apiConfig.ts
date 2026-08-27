@@ -15,8 +15,8 @@ const getApiBaseUrl = (): string => {
     return extraApiUrl;
   }
 
-  // 3. Default fallback for Local Dev
-  return 'http://10.90.245.207:5000/api';
+  // 3. Default fallback to Live Cloud API
+  return 'https://grocartapi.onrender.com/api';
 };
 
 export const BASE_URL = getApiBaseUrl();

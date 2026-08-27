@@ -38,6 +38,7 @@
       ]
     ],
     "extra": {
+      "apiUrl": "https://grocartapi.onrender.com/api",
       "eas": {
         "projectId": "d0287596-2141-4eb2-bcab-1a9f3d7831ae"
       }
