@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -6,29 +6,27 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  Animated,
   ViewStyle,
   TextStyle,
-} from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import MultiTaskButton from "../../components/Components/shared/MultiTaskButton";
-import QuantityButton from "../../components/QuantityButton";
-import type { RootStackParamList } from "../../navigation/navigation";
-import type { Product } from "./Product";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store";
-import { ProductDetails } from "../../types/ProductDetails";
+  Dimensions,
+} from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../navigation/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
 import {
   addToCart,
   decrementQuantity,
   incrementQuantity,
-} from "../../store/slices/cartSlice";
-import { ProductListItemDto } from "../../types/ProductListItemDto";
+} from '../../store/slices/cartSlice';
+import { ProductListItemDto } from '../../types/ProductListItemDto';
 
-type NavProp = NavigationProp<RootStackParamList, "ProductDetails">;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = 12;
+// 2.3 "Peek" Carousel: 2 full cards + ~30% peek of 3rd card inviting swipe
+const CARD_WIDTH = Math.floor((SCREEN_WIDTH - 32) * 0.43);
 
-
-
+type NavProp = NavigationProp<RootStackParamList, 'ProductDetails'>;
 
 interface Props {
   title: string;
@@ -46,8 +44,8 @@ const ProductListSection = ({
   products,
   onSeeAllPress,
   cardStyle,
+  titleStyle,
   badge,
-  animateImage,
   sectionType = 'bestSelling',
 }: Props) => {
   const navigation = useNavigation<NavProp>();
@@ -57,7 +55,7 @@ const ProductListSection = ({
   const getQuantity = (productId: number) =>
     cartItems.find((item) => item.id === productId)?.quantity || 0;
 
-  const handleAdd = (product:ProductListItemDto) => {
+  const handleAdd = (product: ProductListItemDto) => {
     dispatch(addToCart(product));
   };
 
@@ -68,137 +66,123 @@ const ProductListSection = ({
   const handleDecrease = (id: number) => {
     dispatch(decrementQuantity(id));
   };
-// const AnimatedImage = ({ source }: { source: any }) => {
-//   const scale = useRef(new Animated.Value(0.8)).current;
-
-//   useEffect(() => {
-//     Animated.spring(scale, {
-//       toValue: 1,
-//       useNativeDriver: true,
-//       friction: 5,
-//     }).start();
-//   }, []);
-
-//   return (
-//     <Animated.Image
-//       source={source}
-//       style={[
-//         {
-//           width: '100%',
-//           height: '100%',
-//           resizeMode: 'contain',
-//           borderRadius: 8,
-//           transform: [{ scale }],
-//         },
-//       ]}
-//     />
-//   );
-// };
-
-const AnimatedImage = ({
-  source,
-  index,
-}: {
-  source: any;
-  index: number;
-}) => {
-  const scale = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 6,
-        delay: index * 100,
-    }).start();
-  }, []);
-
-  return (
-    <Animated.Image
-      source={source}
-        style={[styles.imagePlaceholder, { transform: [{ scale }] }]}
-    />
-  );
-};
-
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
-        <Text style={[styles.title]}>{title}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, titleStyle]}>{title}</Text>
+        </View>
         {onSeeAllPress && (
-          <TouchableOpacity onPress={onSeeAllPress}>
-            <Text style={styles.seeAll}>See All</Text>
+          <TouchableOpacity onPress={onSeeAllPress} activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All ›</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-       {products.map((product, index) => {
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        {products.map((product) => {
           const quantity = getQuantity(product.id);
+          const price = product.price;
+          const discountPrice = product.discountPrice > 0 ? product.discountPrice : price;
+          const hasDiscount = price > discountPrice;
+          const discountAmount = price - discountPrice;
+          const discountPercent = hasDiscount
+            ? Math.round((discountAmount / price) * 100)
+            : 0;
 
           return (
-            <TouchableOpacity
-              key={product.id}
-              onPress={() =>
-                navigation.navigate("ProductDetails", {
-                  productId: product.id.toString(),
-                  sectionType,
-                })
-              }
-              style={[styles.card, cardStyle]}
-            >
-              <View style={styles.imageWrapper}>
-        {animateImage && product.imageUrl ? (
-          <AnimatedImage source={{ uri: product.imageUrl }} index={index} />
-        ) : (
-                  <Image source={{ uri: product.imageUrl }} style={styles.image} />
-        )}
+            <View key={product.id} style={[styles.card, cardStyle]}>
+              {/* Tappable Area for Product Details */}
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('ProductDetails', {
+                    productId: product.id.toString(),
+                    sectionType,
+                  })
+                }
+                activeOpacity={0.9}
+                style={styles.clickableArea}
+              >
+                {/* Product Image & Badges Box */}
+                <View style={styles.imageBackdrop}>
+                  {product.imageUrl ? (
+                    <Image source={{ uri: product.imageUrl }} style={styles.image} />
+                  ) : null}
 
-                {badge && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Exclusive</Text>
+                  {/* Discount Badge */}
+                  {discountPercent > 0 && (
+                    <View style={styles.discountPill}>
+                      <Text style={styles.discountPillText}>⚡ {discountPercent}% OFF</Text>
+                    </View>
+                  )}
+
+                  {/* Exclusive Tag */}
+                  {badge && (
+                    <View style={styles.exclusivePill}>
+                      <Text style={styles.exclusivePillText}>★ Exclusive</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Product Info */}
+                <View style={styles.infoContainer}>
+                  <Text style={styles.unitSizeText} numberOfLines={1}>
+                    {product.unitSize || '1 Unit'}
+                  </Text>
+
+                  <Text style={styles.productTitle} numberOfLines={2}>
+                    {product.name}
+                  </Text>
+
+                  {/* Price & Savings */}
+                  <View style={styles.priceContainer}>
+                    <View style={styles.priceRow}>
+                      <Text style={styles.currentPrice}>₹{discountPrice}</Text>
+                      {hasDiscount && (
+                        <Text style={styles.mrpPrice}>₹{price}</Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Add Button / Counter Stepper (Isolated from Navigation) */}
+              <View style={styles.actionRow}>
+                {quantity === 0 ? (
+                  <TouchableOpacity
+                    style={styles.addBtn}
+                    onPress={() => handleAdd(product)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.addBtnText}>ADD</Text>
+                    <Text style={styles.addBtnPlus}>+</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.stepperContainer}>
+                    <TouchableOpacity
+                      onPress={() => handleDecrease(product.id)}
+                      style={styles.stepperBtn}
+                    >
+                      <Text style={styles.stepperBtnText}>−</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.stepperCount}>{quantity}</Text>
+
+                    <TouchableOpacity
+                      onPress={() => handleIncrease(product.id)}
+                      style={styles.stepperBtn}
+                    >
+                      <Text style={styles.stepperBtnText}>+</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
-
-              <Text style={styles.quantityLabel}>
-                {product.unitSize}
-              </Text>
-
-              <Text style={styles.productTitle}>{product.name}</Text>
-
-              {quantity === 0 ? (
-                <MultiTaskButton
-                  title="Add"
-                  onPress={() => handleAdd(product)}
-                  style={styles.addButton}
-                />
-              ) : (
-                <View style={styles.counterContainer}>
-                  <QuantityButton
-                    title="−"
-                    onPress={() => handleDecrease(product.id)}
-                    style={styles.counterButton}
-                  />
-                  <Text style={styles.counterText}>{quantity}</Text>
-                  <QuantityButton
-                    title="+"
-                    onPress={() => handleIncrease(product.id)}
-                    style={styles.counterButton}
-                  />
-                </View>
-              )}
-
-              <View style={styles.priceRow}>
-                <Text style={styles.originalPrice}>
-                  {`${product.price}`}
-                </Text>
-                <Text style={styles.discountedPrice}>
-                  {`${product.discountPrice}`}
-                </Text>
             </View>
-            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -207,82 +191,200 @@ const AnimatedImage = ({
 };
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 24 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-    marginBottom: 12,
+  wrapper: {
+    marginBottom: 28,
+    overflow: 'visible',
   },
-  title: { fontWeight: "bold", fontSize: 16, color: "#222" },
-  seeAll: { color: "red", fontWeight: "600" },
-card: {
-  width: 160,
-    backgroundColor: "#fff",
-  marginRight: 12,
-  padding: 10,
-  borderRadius: 12,
-    borderColor: "#FFD700",
-  borderWidth: 1,
-    shadowColor: "#FFD700",
-  shadowOpacity: 0.3,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 6,
-  elevation: 4,
-},
-  imageWrapper: { position: "relative", marginBottom: 8 },
-  imagePlaceholder: {
-    width: "100%",
-    height: 100,
-    backgroundColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 8,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 2,
+    marginBottom: 14,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    fontWeight: '800',
+    fontSize: 19,
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  seeAll: {
+    color: '#0C831F',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  scrollContainer: {
+    paddingLeft: 0,
+    paddingRight: 20,
+    paddingBottom: 14,
+  },
+  card: {
+    width: CARD_WIDTH,
+    backgroundColor: '#FFFFFF',
+    marginRight: CARD_GAP,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
+    justifyContent: 'space-between',
+    paddingBottom: 14,
+  },
+  clickableArea: {
+    flex: 1,
+  },
+  imageBackdrop: {
+    position: 'relative',
+    height: 110,
+    width: '100%',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
   },
   image: {
-    width: "100%",
-    height: 100,
-    resizeMode: "contain",
-    borderRadius: 8,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
-  badge: {
-    position: "absolute",
-  top: 6,
-  left: 6,
-    backgroundColor: "#FFD700",
-  paddingHorizontal: 6,
-  paddingVertical: 2,
-  borderRadius: 4,
-  zIndex: 1,
-},
-  badgeText: { color: "#333", fontSize: 10, fontWeight: "bold" },
-  quantityLabel: { fontSize: 12, color: "red", marginBottom: 4 },
-  productTitle: { fontSize: 13, fontWeight: "500", marginBottom: 8 },
-  addButton: {
-    backgroundColor: "red",
-    paddingVertical: 6,
+  discountPill: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: '#0C831F',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
     borderRadius: 6,
-    alignItems: "center",
+    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 2,
+    elevation: 3,
   },
-  counterContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 6,
+  discountPillText: {
+    color: '#FFFFFF',
+    fontSize: 11.5,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
-  counterButton: {
-    backgroundColor: "red",
+  exclusivePill: {
+    position: 'absolute',
+    bottom: 6,
+    right: 6,
+    backgroundColor: '#D97706',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    zIndex: 2,
+    elevation: 2,
+  },
+  exclusivePillText: {
+    color: '#FFFFFF',
+    fontSize: 10.5,
+    fontWeight: '900',
+  },
+  infoContainer: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingTop: 8,
   },
-  counterText: { marginHorizontal: 10, fontSize: 16, fontWeight: "bold" },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  unitSizeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 2,
+  },
+  productTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+    minHeight: 34,
+    lineHeight: 17,
+  },
+  priceContainer: {
     marginTop: 4,
+    marginBottom: 4,
   },
-  originalPrice: { textDecorationLine: "line-through", color: "#999" },
-  discountedPrice: { color: "red", fontWeight: "bold" },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+  },
+  currentPrice: {
+    color: '#0F172A',
+    fontWeight: '900',
+    fontSize: 15,
+    marginRight: 6,
+  },
+  mrpPrice: {
+    textDecorationLine: 'line-through',
+    color: '#94A3B8',
+    fontSize: 11.5,
+    fontWeight: '600',
+  },
+  actionRow: {
+    paddingHorizontal: 8,
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  addBtn: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.5,
+    borderColor: '#0C831F',
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  addBtnText: {
+    color: '#0C831F',
+    fontWeight: '900',
+    fontSize: 13.5,
+    letterSpacing: 0.5,
+  },
+  addBtnPlus: {
+    color: '#0C831F',
+    fontWeight: '900',
+    fontSize: 18,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0C831F',
+    borderRadius: 9,
+    height: 38,
+    paddingHorizontal: 4,
+  },
+  stepperBtn: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperBtnText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
+    lineHeight: 22,
+  },
+  stepperCount: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+    minWidth: 20,
+  },
 });
 
 export default ProductListSection;

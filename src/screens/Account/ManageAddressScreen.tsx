@@ -12,6 +12,7 @@ import {
   Platform,
   Modal,
   FlatList,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -44,12 +45,10 @@ export default function ManageAddressScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch system-defined allowed delivery points
       const pointsRes = await getAllDeliveryPointsApi();
       const points = pointsRes?.data || [];
       setDeliveryPoints(points);
 
-      // 2. Fetch current user saved address
       const addrRes = await getUserAddressApi();
       if (addrRes?.success && addrRes?.data) {
         const addr = addrRes.data;
@@ -69,12 +68,12 @@ export default function ManageAddressScreen() {
 
   const handleSave = async () => {
     if (!selectedPointId) {
-      Alert.alert('Required', 'Please select an allowed delivery point.');
+      Alert.alert('Required', 'Please select an authorized delivery point.');
       return;
     }
 
     if (!roomNumber.trim()) {
-      Alert.alert('Required', 'Please enter your room / flat / cabin number.');
+      Alert.alert('Required', 'Please enter your Quarter / Room number.');
       return;
     }
 
@@ -87,7 +86,7 @@ export default function ManageAddressScreen() {
       });
 
       if (response.success) {
-        Alert.alert('Success', 'Delivery address saved successfully!', [
+        Alert.alert('Address Saved', 'Township delivery location saved successfully!', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
@@ -102,7 +101,6 @@ export default function ManageAddressScreen() {
 
   const selectedPoint = deliveryPoints.find((p) => p.id === selectedPointId);
 
-  // Filter delivery points by search query
   const filteredPoints = deliveryPoints.filter((point) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -113,188 +111,196 @@ export default function ManageAddressScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FF5A4D" />
-        <Text style={styles.loadingText}>Loading delivery points...</Text>
-      </View>
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#059669" />
+          <Text style={styles.loadingText}>Loading township delivery locations...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backArrow}>{'<'}</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Address</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Section 1: Searchable Dropdown for Allowed Delivery Points */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>1. Allowed Delivery Point</Text>
-          <Text style={styles.sectionSubtitle}>
-            Select an authorized campus pickup location from the dropdown.
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.dropdownTrigger}
-          onPress={() => {
-            setSearchQuery('');
-            setIsDropdownOpen(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <View style={{ flex: 1 }}>
-            {selectedPoint ? (
-              <>
-                <Text style={styles.dropdownSelectedName}>{selectedPoint.name}</Text>
-                {selectedPoint.address ? (
-                  <Text style={styles.dropdownSelectedAddress}>{selectedPoint.address}</Text>
-                ) : null}
-              </>
-            ) : (
-              <Text style={styles.dropdownPlaceholder}>Select Delivery Point...</Text>
-            )}
-          </View>
-          <Text style={styles.dropdownArrow}>▼</Text>
-        </TouchableOpacity>
-
-        {/* Section 2: User Custom Room / Room Address */}
-        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>2. Room / Flat / Cabin Number *</Text>
-          <Text style={styles.sectionSubtitle}>
-            Specify your room or flat number for delivery arrival notification.
-          </Text>
-        </View>
-
-        <TextInput
-          style={styles.textInput}
-          placeholder="e.g. Room 402, Block A / Cabin 12"
-          value={roomNumber}
-          onChangeText={setRoomNumber}
-          placeholderTextColor="#999"
-        />
-
-        {/* Section 3: Optional Additional Info */}
-        <View style={[styles.sectionHeader, { marginTop: 18 }]}>
-          <Text style={styles.sectionTitle}>3. Additional Notes (Optional)</Text>
-        </View>
-
-        <TextInput
-          style={[styles.textInput, styles.textArea]}
-          placeholder="e.g. Call when arriving at lobby desk"
-          value={additionalInfo}
-          onChangeText={setAdditionalInfo}
-          placeholderTextColor="#999"
-          multiline
-          numberOfLines={3}
-        />
-
-        {/* Save Button */}
-        <TouchableOpacity
-          style={[styles.saveButton, saving && { opacity: 0.7 }]}
-          onPress={handleSave}
-          disabled={saving}
-          activeOpacity={0.85}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>SAVE ADDRESS</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Searchable Dropdown Modal */}
-      <Modal
-        visible={isDropdownOpen}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsDropdownOpen(false)}
+    <SafeAreaView style={styles.screen}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Delivery Point</Text>
-              <TouchableOpacity
-                onPress={() => setIsDropdownOpen(false)}
-                style={styles.modalCloseButton}
-              >
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+        {/* Header Bar */}
+        <View style={styles.topHeaderBar}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.headerBackIcon}>←</Text>
+          </TouchableOpacity>
 
-            {/* Search Input */}
-            <View style={styles.searchContainer}>
-              <Text style={styles.searchIcon}>🔍</Text>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search delivery point or address..."
-                placeholderTextColor="#999"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoFocus={true}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Text style={styles.clearSearchText}>✕</Text>
-                </TouchableOpacity>
+          <Text style={styles.headerTitle}>Manage Delivery Location</Text>
+
+          <View style={{ width: 36 }} />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Section 1: Allowed Delivery Point */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>1. Authorized Township Delivery Point *</Text>
+            <Text style={styles.sectionSubtitle}>
+              Select your township sector or central campus delivery point.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.dropdownTrigger}
+            onPress={() => {
+              setSearchQuery('');
+              setIsDropdownOpen(true);
+            }}
+            activeOpacity={0.85}
+          >
+            <View style={{ flex: 1 }}>
+              {selectedPoint ? (
+                <>
+                  <Text style={styles.dropdownSelectedName}>{selectedPoint.name}</Text>
+                  {selectedPoint.address ? (
+                    <Text style={styles.dropdownSelectedAddress}>{selectedPoint.address}</Text>
+                  ) : null}
+                </>
+              ) : (
+                <Text style={styles.dropdownPlaceholder}>Select Delivery Point...</Text>
               )}
             </View>
+            <Text style={styles.dropdownArrow}>▼</Text>
+          </TouchableOpacity>
 
-            {/* Filtered Points List */}
-            <FlatList
-              data={filteredPoints}
-              keyExtractor={(item) => item.id.toString()}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }) => {
-                const isSelected = selectedPointId === item.id;
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.modalItem,
-                      isSelected && styles.modalItemSelected,
-                    ]}
-                    onPress={() => {
-                      setSelectedPointId(item.id);
-                      setIsDropdownOpen(false);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
-                          styles.modalItemName,
-                          isSelected && styles.modalItemNameSelected,
-                        ]}
-                      >
-                        {item.name}
-                      </Text>
-                      {item.address ? (
-                        <Text style={styles.modalItemAddress}>{item.address}</Text>
-                      ) : null}
-                    </View>
-                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                  </TouchableOpacity>
-                );
-              }}
-              ListEmptyComponent={
-                <View style={styles.emptyList}>
-                  <Text style={styles.emptyText}>No matching delivery points found.</Text>
-                </View>
-              }
-            />
+          {/* Section 2: Quarter / Room Number */}
+          <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+            <Text style={styles.sectionTitle}>2. Quarter / Room / Flat Number *</Text>
+            <Text style={styles.sectionSubtitle}>
+              Specify your exact Quarter / Flat number (e.g. Qtr B-202).
+            </Text>
           </View>
-        </View>
-      </Modal>
-    </KeyboardAvoidingView>
+
+          <TextInput
+            style={styles.textInput}
+            placeholder="e.g. Qtr B-202 / Flat 405"
+            value={roomNumber}
+            onChangeText={setRoomNumber}
+            placeholderTextColor="#94A3B8"
+          />
+
+          {/* Section 3: Delivery Notes */}
+          <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+            <Text style={styles.sectionTitle}>3. Delivery Instructions (Optional)</Text>
+          </View>
+
+          <TextInput
+            style={[styles.textInput, styles.textArea]}
+            placeholder="e.g. Leave at Quarter security gate desk"
+            value={additionalInfo}
+            onChangeText={setAdditionalInfo}
+            placeholderTextColor="#94A3B8"
+            multiline
+            numberOfLines={3}
+          />
+
+          {/* Save Button */}
+          <TouchableOpacity
+            style={[styles.saveButton, saving && { opacity: 0.7 }]}
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.9}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FACC15" />
+            ) : (
+              <Text style={styles.saveButtonText}>SAVE DELIVERY LOCATION</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Searchable Dropdown Modal */}
+        <Modal
+          visible={isDropdownOpen}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setIsDropdownOpen(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Delivery Location</Text>
+                <TouchableOpacity
+                  onPress={() => setIsDropdownOpen(false)}
+                  style={styles.modalCloseButton}
+                >
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.searchContainer}>
+                <Text style={styles.searchIcon}>🔍</Text>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search sector or location..."
+                  placeholderTextColor="#94A3B8"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoFocus={true}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <Text style={styles.clearSearchText}>✕</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <FlatList
+                data={filteredPoints}
+                keyExtractor={(item) => item.id.toString()}
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ item }) => {
+                  const isSelected = selectedPointId === item.id;
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.modalItem,
+                        isSelected && styles.modalItemSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedPointId(item.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.modalItemName,
+                            isSelected && styles.modalItemNameSelected,
+                          ]}
+                        >
+                          {item.name}
+                        </Text>
+                        {item.address ? (
+                          <Text style={styles.modalItemAddress}>{item.address}</Text>
+                        ) : null}
+                      </View>
+                      {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                }}
+                ListEmptyComponent={
+                  <View style={styles.emptyList}>
+                    <Text style={styles.emptyText}>No matching delivery points found.</Text>
+                  </View>
+                }
+              />
+            </View>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -307,131 +313,141 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '600',
   },
-  header: {
+  topHeaderBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 54,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 45,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#ECECEC',
+    borderBottomColor: '#E2E8F0',
   },
-  backButton: {
-    marginRight: 14,
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
-  backArrow: {
-    fontSize: 26,
-    color: '#222',
+  headerBackIcon: {
+    fontSize: 18,
+    color: '#0F172A',
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 40,
   },
   sectionHeader: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: '#777',
-    marginTop: 4,
-    lineHeight: 18,
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
   },
   dropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    borderRadius: 12,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   dropdownSelectedName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   dropdownSelectedAddress: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 3,
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
   dropdownPlaceholder: {
-    fontSize: 15,
-    color: '#999',
+    fontSize: 14,
+    color: '#94A3B8',
   },
   dropdownArrow: {
-    fontSize: 14,
-    color: '#888',
+    fontSize: 12,
+    color: '#64748B',
     marginLeft: 10,
   },
   textInput: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: '#222',
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '600',
   },
   textArea: {
-    height: 80,
+    minHeight: 70,
     textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: '#FF5A4D',
+    backgroundColor: '#0F172A',
     paddingVertical: 16,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
-    shadowColor: '#FF5A4D',
+    marginTop: 28,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
   saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FACC15',
+    fontSize: 15,
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
-
-  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -447,73 +463,76 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0F172A',
   },
   modalCloseButton: {
-    padding: 6,
+    padding: 4,
   },
   modalCloseText: {
     fontSize: 18,
-    color: '#888',
-    fontWeight: '600',
+    color: '#64748B',
+    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F1F5F9',
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 8,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   searchIcon: {
-    fontSize: 16,
+    fontSize: 14,
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
-    color: '#222',
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '600',
     padding: 0,
   },
   clearSearchText: {
     fontSize: 14,
-    color: '#888',
-    paddingHorizontal: 6,
+    color: '#64748B',
+    paddingHorizontal: 4,
   },
   modalItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F1F5F9',
     borderRadius: 8,
   },
   modalItemSelected: {
-    backgroundColor: '#FFF5F4',
+    backgroundColor: '#ECFDF5',
   },
   modalItemName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#334155',
   },
   modalItemNameSelected: {
-    color: '#FF5A4D',
-    fontWeight: '700',
+    color: '#059669',
+    fontWeight: '900',
   },
   modalItemAddress: {
-    fontSize: 13,
-    color: '#777',
+    fontSize: 12,
+    color: '#64748B',
     marginTop: 2,
   },
   checkmark: {
     fontSize: 16,
-    color: '#FF5A4D',
-    fontWeight: 'bold',
+    color: '#059669',
+    fontWeight: '900',
     marginLeft: 8,
   },
   emptyList: {
@@ -521,7 +540,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#999',
-    fontSize: 14,
+    color: '#64748B',
+    fontSize: 13,
   },
 });

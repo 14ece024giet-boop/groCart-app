@@ -41,11 +41,15 @@ export const fetchAndHydrateServerCart = createAsyncThunk(
   async (_, { dispatch }) => {
     try {
       const response = await getBasketApi();
-      if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+      if (response.success && Array.isArray(response.data)) {
+        // 🔒 Always set exact server items (even if empty `[]`), ensuring complete cart isolation per user!
         dispatch(setCartItems(response.data));
+      } else {
+        dispatch(setCartItems([]));
       }
     } catch (err: any) {
       console.warn('Failed to hydrate cart from server:', err.message);
+      dispatch(setCartItems([]));
     }
   }
 );
@@ -158,14 +162,14 @@ const cartSlice = createSlice({
       persistToStorage(state.items);
     },
 
-    /** Clears local cart completely (used after placing order or logging out) */
+    /** Clears local cart completely (used after placing order) */
     clearCart: (state) => {
       state.items = [];
       persistToStorage([]);
       clearBasketApi().catch(() => {});
     },
 
-    /** Resets local Redux cart state without wiping backend database (used on logout) */
+    /** Resets local Redux cart state without wiping backend database (used on logout & user switch) */
     resetCartOnLogout: (state) => {
       state.items = [];
       AsyncStorage.removeItem(CART_STORAGE_KEY).catch(() => {});

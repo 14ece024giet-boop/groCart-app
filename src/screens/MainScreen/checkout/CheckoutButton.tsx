@@ -1,4 +1,3 @@
-// components/CheckoutButton.tsx
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
@@ -19,25 +18,33 @@ const CheckoutButton: React.FC<CheckoutButtonProps> = ({ couponCode }) => {
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handleCheckout}>
-      <Text style={styles.buttonText}>CHECKOUT</Text>
+    <TouchableOpacity style={styles.button} onPress={handleCheckout} activeOpacity={0.9}>
+      <Text style={styles.buttonText}>PROCEED TO CHECKOUT →</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#FF5A4D',
+    backgroundColor: '#0F172A',
     paddingVertical: 16,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 24,
+    marginTop: 14,
+    marginBottom: 36,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: '#FACC15',
+    fontWeight: '900',
+    fontSize: 15,
+    letterSpacing: 0.5,
   },
 });
 

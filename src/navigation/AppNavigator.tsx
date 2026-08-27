@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import CartIcon from '../screens/Cart/CartIcon';
 import CartScreen from '../screens/Cart/CartScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
-import PromoBanner from '../screens/MainScreen/Promo/PromoBanner';
 import PromoDetailsScreen from '../screens/MainScreen/Promo/PromoDetailsScreen';
 import FavoritesScreen from '../screens/MainScreen/FavoritesScreen';
 import SearchScreen from '../screens/MainScreen/Search/SearchScreen';
@@ -13,7 +11,6 @@ import MyOrdersScreen from '../screens/Account/MyOrdersScreen';
 import OrderTrackingScreen from '../screens/MainScreen/checkout/OrderTrackingScreen';
 import { RootStackParamList } from './navigation';
 import ProductDetailsScreen from '../screens/MainScreen/Product/ProductDetials/ProductDetailsScreen';
-import ProductScreen from '../screens/MainScreen/Product/ProductDetials/ProductDetailsScreen';
 import CreateAccountScreen from '../screens/Account/CreateAccountScreen';
 import PhoneVerificationScreen from '../screens/Account/PhoneVerificationScreen';
 import OtpVerificationScreen from '../screens/Account/OtpVerificationScreen';
@@ -26,7 +23,6 @@ import WelcomeScreen from '../screens/Account/WelcomeScreen';
 import SignInScreen from '../screens/Account/SignInScreen';
 import EditProfileScreen from '../screens/Account/EditProfileScreen';
 import ManageAddressScreen from '../screens/Account/ManageAddressScreen';
-
 
 import { useDispatch } from 'react-redux';
 import { loadLocalCart, fetchAndHydrateServerCart } from '../store/slices/cartSlice';
@@ -46,13 +42,14 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
-       <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="SignIn" component={SignInScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
         <Stack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
         <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
 
         <Stack.Screen name="Main" component={MainScreen} />
+        <Stack.Screen name="Home" component={MainScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Favorites" component={FavoritesScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />
@@ -70,8 +67,8 @@ export default function AppNavigator() {
         <Stack.Screen name="OrderConfirmation" component={OrderConfirmationScreen} />
 
         <Stack.Screen name="QRScanner" component={QRScannerScreen} />
-        <Stack.Screen name="TestQRScannerButtonScreen" component={TestQRScannerButtonScreen} /> 
+        <Stack.Screen name="TestQRScannerButtonScreen" component={TestQRScannerButtonScreen} />
       </Stack.Navigator>
-    </NavigationContainer>  
+    </NavigationContainer>
   );
 }

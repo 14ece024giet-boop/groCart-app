@@ -6,7 +6,7 @@ import { RootState } from '../../store';
 import { decrementQuantity, incrementQuantity } from '../../store/slices/cartSlice';
 import { ProductDetails } from '../../types/ProductDetails';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../navigation/navigation'; // adjust import path if needed
+import { RootStackParamList } from '../../navigation/navigation';
 
 interface Props {
   item: ProductDetails;
@@ -18,184 +18,178 @@ const CartItem = ({ item }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation<ProductScreenNavigationProp>();
 
-  // ✅ Get quantity for this item from Redux
   const quantity = useSelector((state: RootState) => {
     const cartItem = state.cart.items.find((p) => p.id === item.id);
     return cartItem ? cartItem.quantity : 1;
   });
 
-  // ✅ Calculate totals
-  const totalOriginal = item.price * quantity;
-  const totalDiscounted = item.discountPrice ? item.discountPrice * quantity : totalOriginal;
+  const unitPrice = item.discountPrice > 0 ? item.discountPrice : item.price;
+  const hasDiscount = item.price > unitPrice;
+  const totalItemPrice = unitPrice * quantity;
 
-  // 🛒 Navigate to Product Details
   const handlePress = () => {
     navigation.navigate('ProductDetails', { productId: item.id.toString() });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Clickable Section (Image + Info) */}
-      <TouchableOpacity style={styles.leftSection} onPress={handlePress} activeOpacity={0.8}>
-        <Image source={{ uri: item.imageUrl }} style={styles.imagePlaceholder} />
+    <View style={styles.cardContainer}>
+      {/* Clickable Image + Info */}
+      <TouchableOpacity style={styles.leftSection} onPress={handlePress} activeOpacity={0.85}>
+        <View style={styles.imageBackdrop}>
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="contain" />
+          ) : null}
+        </View>
+
         <View style={styles.infoContainer}>
           <Text style={styles.title} numberOfLines={1}>
-            {item.name}
+            {item.name || item.title}
           </Text>
-          <Text style={styles.weight}>{item.unitSize || '1 Unit'}</Text>
+          <Text style={styles.unitSize}>{item.unitSize || '1 Unit'}</Text>
 
-              {/* Per Unit Price */}
-        <View style={styles.priceRow}>
-          {item.discountPrice && item.discountPrice < item.price ? (
-            <>
-              <Text style={styles.oldPrice}>{item.price.toFixed(2)}</Text>
-              <Text style={styles.newPrice}>{item.discountPrice.toFixed(2)}</Text>
-            </>
-          ) : (
-            <Text style={styles.newPrice}>${item.price.toFixed(2)}</Text>
-          )}
-        </View>
-      
+          {/* Unit Price */}
+          <View style={styles.priceRow}>
+            <Text style={styles.unitPriceText}>₹{unitPrice}</Text>
+            {hasDiscount && (
+              <Text style={styles.mrpText}>₹{item.price}</Text>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
 
-      {/* Quantity Controls */}
-      <View style={styles.rightContainer}>
-        <View style={styles.controls}>
+      {/* Right Stepper & Line Total */}
+      <View style={styles.rightSection}>
+        <View style={styles.stepperContainer}>
           <TouchableOpacity
             onPress={() => dispatch(decrementQuantity(item.id))}
-            style={styles.controlButton}
+            style={styles.stepperBtn}
+            activeOpacity={0.8}
           >
-            <Text style={styles.controlText}>−</Text>
+            <Text style={styles.stepperBtnText}>−</Text>
           </TouchableOpacity>
 
-          <Text style={styles.quantity}>{quantity}</Text>
+          <Text style={styles.quantityText}>{quantity}</Text>
 
           <TouchableOpacity
             onPress={() => dispatch(incrementQuantity(item.id))}
-            style={styles.controlButton}
+            style={styles.stepperBtn}
+            activeOpacity={0.8}
           >
-            <Text style={styles.controlText}>＋</Text>
+            <Text style={styles.stepperBtnText}>+</Text>
           </TouchableOpacity>
         </View>
 
-         {/* Total Row (side by side) */}
-          <View style={styles.totalRow}>
-            {totalOriginal !== totalDiscounted && (
-              <Text style={styles.oldTotal}>{totalOriginal.toFixed(2)}</Text>
-            )}
-            <Text style={styles.newTotal}>{totalDiscounted.toFixed(2)}</Text>
-          </View>
+        <Text style={styles.lineTotalText}>₹{totalItemPrice.toFixed(2)}</Text>
       </View>
     </View>
   );
 };
 
-export default CartItem;
-
 const styles = StyleSheet.create({
-  container: {
+  cardContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
   },
   leftSection: {
     flexDirection: 'row',
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
   },
-  imagePlaceholder: {
-    width: 70,
-    height: 70,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 8,
+  imageBackdrop: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     flex: 1,
-    marginHorizontal: 10,
-    justifyContent: 'center',
+    marginLeft: 10,
   },
   title: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  weight: {
+  unitSize: {
     fontSize: 12,
-    color: '#999',
+    fontWeight: '600',
+    color: '#64748B',
     marginTop: 2,
   },
-
-  // 💰 Total Row
-  totalRow: {
+  priceRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 6,
+    alignItems: 'baseline',
+    marginTop: 4,
   },
-  oldTotal: {
+  unitPriceText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginRight: 6,
+  },
+  mrpText: {
+    fontSize: 12,
     textDecorationLine: 'line-through',
-    color: '#e81010ff',
-    fontSize: 13,
+    color: '#94A3B8',
   },
-  newTotal: {
-    color: '#13730aff',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-
-  // ➕ Quantity Controls
-  rightContainer: {
+  rightSection: {
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    height: 70,
   },
-  controls: {
+  stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#0C831F',
+    borderRadius: 9,
+    height: 38,
+    paddingHorizontal: 4,
+    marginBottom: 6,
   },
-  controlButton: {
-    width: 24,
-    height: 24,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
+  stepperBtn: {
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  controlText: {
+  stepperBtnText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
+    lineHeight: 22,
+  },
+  quantityText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    color: '#333',
-  },
-  quantity: {
+    fontWeight: '900',
     marginHorizontal: 8,
-    fontSize: 14,
-    fontWeight: '500',
   },
-
-  // 💲Per-unit Price
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 6,
-  },
-  oldPrice: {
-    textDecorationLine: 'line-through',
-    color: '#e01111ff',
-    fontSize: 12,
-  },
-  newPrice: {
-    color: '#13730aff',
-    fontWeight: 'bold',
-    fontSize: 13,
+  lineTotalText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#059669',
   },
 });
+
+export default CartItem;

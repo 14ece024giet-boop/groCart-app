@@ -6,11 +6,13 @@ import { RootStackParamList } from '../../navigation/navigation';
 import ProfileHeader from './ProfileHeader';
 import ProfileOptionItem from './ProfileOptionItem';
 import LogoutButton from './LogoutButton';
+import BottomTabBar from '../MainScreen/BottomTabNavigatorScreen/BottomTabBar';
 import { getUserProfileApi, UserProfileDto } from '../../Utility/userProfileApi';
 import { clearAuthTokens } from '../../Utility/tokenStorage';
 
 import { useDispatch } from 'react-redux';
 import { resetCartOnLogout } from '../../store/slices/cartSlice';
+import { resetFavoritesOnLogout } from '../../store/slices/favoritesSlice';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
@@ -47,6 +49,7 @@ export default function ProfileScreen({ navigation }: Props) {
     try {
       await clearAuthTokens();
       dispatch(resetCartOnLogout());
+      dispatch(resetFavoritesOnLogout());
       navigation.replace('SignIn');
     } catch (error) {
       console.error("Failed to logout:", error);
@@ -56,34 +59,35 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <ActivityIndicator size="large" style={{ marginVertical: 100 }} />
+          <ActivityIndicator size="large" color="#059669" style={{ marginVertical: 100 }} />
         ) : profile ? (
           <ProfileHeader name={profile.name} email={profile.email} phone={profile.phoneNumber} />
         ) : (
           <View style={{ alignItems: 'center', marginVertical: 100 }}>
-            <Text>Could not load profile.</Text>
+            <Text style={{ color: '#64748B' }}>Could not load profile.</Text>
           </View>
         )}
 
         <ProfileOptionItem title="Profile Edit" icon="account-edit" onPress={() => navigation.navigate('EditProfile')} />
         <ProfileOptionItem title="Manage Addresses" icon="map-marker-radius" onPress={() => navigation.navigate('ManageAddress')} />
         <ProfileOptionItem title="My Orders" icon="clipboard-list" onPress={() => navigation.navigate('Orders')} />
-        {/* <ProfileOptionItem title="Manage Card" icon="credit-card-outline" onPress={() => handleNavigate('Cards')} /> */}
-        {/* <ProfileOptionItem title="Change Password" icon="lock-reset" onPress={() => handleNavigate('ChangePassword')} /> */}
-        {/* <ProfileOptionItem title="Setting" icon="cog-outline" onPress={() => handleNavigate('Settings')} /> */}
 
         <LogoutButton onLogout={handleLogout} />
       </ScrollView>
+
+      {/* Persistent Bottom Tab Bar */}
+      <BottomTabBar />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#FAFAFA' },
   scroll: {
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingTop: 45,
+    paddingBottom: 110,
   },
 });

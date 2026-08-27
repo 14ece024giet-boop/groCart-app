@@ -8,6 +8,14 @@ interface HomeProductsData {
   exclusiveItems: ProductListItemDto[];
 }
 
+export interface FrequentlyBoughtBundleData {
+  mainProduct: ProductListItemDto;
+  bundleItems: ProductListItemDto[];
+  totalOriginalPrice: number;
+  totalBundlePrice: number;
+  totalSavings: number;
+}
+
 export const getHomeProductsApi = async (): Promise<ApiResponse<HomeProductsData>> => {
   const endpoint = `/Product/home-screen`;
 
@@ -23,19 +31,27 @@ export const getHomeProductsApi = async (): Promise<ApiResponse<HomeProductsData
 export const getProductDetailsApi = async (
   productId: number
 ): Promise<ApiResponse<ProductDetails>> => {
-  const endpoint = `/Product`;
+  const endpoint = `/Product/${productId}`;
 
   try {
-    const response = await apiClient.get<ApiResponse<ProductDetails[]>>(endpoint, {
-      params: { ids: [productId] },
-    });
-    return {
-      success: response.data.success,
-      message: response.data.message,
-      data: (response.data.data && response.data.data.length > 0) ? (response.data.data[0] as any) : null,
-    };
+    const response = await apiClient.get<ApiResponse<ProductDetails>>(endpoint);
+    return response.data;
   } catch (error) {
     console.error('Error fetching product details:', error);
+    throw error;
+  }
+};
+
+export const getFrequentlyBoughtBundleApi = async (
+  productId: number
+): Promise<ApiResponse<FrequentlyBoughtBundleData>> => {
+  const endpoint = `/Product/${productId}/frequently-bought`;
+
+  try {
+    const response = await apiClient.get<ApiResponse<FrequentlyBoughtBundleData>>(endpoint);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching frequently bought bundle:', error);
     throw error;
   }
 };
@@ -80,6 +96,22 @@ export const getProductsByIdsApi = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching products by IDs:', error);
+    throw error;
+  }
+};
+
+export const searchProductsApi = async (
+  searchTerm: string
+): Promise<ApiResponse<ProductListItemDto[]>> => {
+  const endpoint = `/Product`;
+
+  try {
+    const response = await apiClient.get<ApiResponse<ProductListItemDto[]>>(endpoint, {
+      params: { searchTerm, take: 50 },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching products:', error);
     throw error;
   }
 };
