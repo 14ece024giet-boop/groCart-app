@@ -47,16 +47,22 @@ export function resolveImageUrl(rawUrl?: string | null): string {
   if (rawUrl.includes('cloudinary.com') || rawUrl.includes('unsplash.com')) {
     return rawUrl;
   }
-  const baseUrlHost = BASE_URL.replace('/api', '');
-  const uploadsIdx = rawUrl.indexOf('/uploads/');
-  if (uploadsIdx >= 0) {
-    return `${baseUrlHost}${rawUrl.substring(uploadsIdx)}`;
+  let cleanUrl = rawUrl;
+  // Always force HTTPS on Render domains (mobile OS blocks plain HTTP)
+  if (cleanUrl.startsWith('http://grocart-api-uat.onrender.com')) {
+    cleanUrl = cleanUrl.replace('http://grocart-api-uat.onrender.com', 'https://grocart-api-uat.onrender.com');
   }
-  if (rawUrl.startsWith('http://10.') || rawUrl.startsWith('http://localhost') || rawUrl.startsWith('http://192.168.')) {
-    const urlPath = rawUrl.replace(/^https?:\/\/[^\/]+/, '');
+
+  const baseUrlHost = BASE_URL.replace('/api', '').replace('http://grocart-api-uat.onrender.com', 'https://grocart-api-uat.onrender.com');
+  const uploadsIdx = cleanUrl.indexOf('/uploads/');
+  if (uploadsIdx >= 0) {
+    return `${baseUrlHost}${cleanUrl.substring(uploadsIdx)}`;
+  }
+  if (cleanUrl.startsWith('http://10.') || cleanUrl.startsWith('http://localhost') || cleanUrl.startsWith('http://192.168.')) {
+    const urlPath = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
     return `${baseUrlHost}${urlPath}`;
   }
-  return rawUrl;
+  return cleanUrl;
 }
 
 export interface ApiResponse<T> {
