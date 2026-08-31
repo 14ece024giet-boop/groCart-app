@@ -20,6 +20,7 @@ import {
   incrementQuantity,
 } from '../../store/slices/cartSlice';
 import { ProductListItemDto } from '../../types/ProductListItemDto';
+import { resolveImageUrl } from '../../Utility/apiConfig';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -111,7 +112,7 @@ const ProductListSection = ({
                 {/* Product Image & Badges Box */}
                 <View style={styles.imageBackdrop}>
                   {product.imageUrl ? (
-                    <Image source={{ uri: product.imageUrl }} style={styles.image} />
+                    <Image source={{ uri: resolveImageUrl(product.imageUrl) }} style={styles.image} />
                   ) : null}
 
                   {/* Discount Badge */}

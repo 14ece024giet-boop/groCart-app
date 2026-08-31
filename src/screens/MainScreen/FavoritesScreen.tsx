@@ -23,6 +23,7 @@ import {
 import BottomTabBar from './BottomTabNavigatorScreen/BottomTabBar';
 import { ProductListItemDto } from '../../types/ProductListItemDto';
 import { getHomeProductsApi } from '../../Utility/HomeProductsApi';
+import { resolveImageUrl } from '../../Utility/apiConfig';
 
 export default function FavoritesScreen() {
   const navigation = useNavigation<any>();
@@ -103,7 +104,7 @@ export default function FavoritesScreen() {
       >
         <View style={styles.imageBox}>
           {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="contain" />
+            <Image source={{ uri: resolveImageUrl(item.imageUrl) }} style={styles.image} resizeMode="contain" />
           ) : (
             <Text style={{ fontSize: 32 }}>🛍️</Text>
           )}

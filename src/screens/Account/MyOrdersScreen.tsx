@@ -19,6 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getMyOrdersApi, Order, OrderItemDto } from '../../Utility/myOrdersApi';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../store/slices/cartSlice';
+import { resolveImageUrl } from '../../Utility/apiConfig';
 
 const TABS = ['All', 'Ongoing', 'Delivered', 'Cancelled'];
 
@@ -153,7 +154,7 @@ export default function MyOrdersScreen() {
             {previewItems.map((prod, idx) => (
               <View key={idx} style={styles.thumbWrapper}>
                 {prod.productImage ? (
-                  <Image source={{ uri: prod.productImage }} style={styles.stripThumb} />
+                  <Image source={{ uri: resolveImageUrl(prod.productImage) }} style={styles.stripThumb} />
                 ) : (
                   <View style={styles.stripThumbPlaceholder}>
                     <Text style={{ fontSize: 13 }}>🛒</Text>
@@ -372,7 +373,7 @@ export default function MyOrdersScreen() {
                     {selectedOrder.items?.map((item, idx) => (
                       <View key={idx} style={styles.itemRow}>
                         {item.productImage ? (
-                          <Image source={{ uri: item.productImage }} style={styles.itemThumb} />
+                          <Image source={{ uri: resolveImageUrl(item.productImage) }} style={styles.itemThumb} />
                         ) : (
                           <View style={styles.itemThumbPlaceholder}>
                             <Text>🥦</Text>

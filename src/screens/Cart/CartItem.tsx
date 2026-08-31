@@ -7,6 +7,7 @@ import { decrementQuantity, incrementQuantity } from '../../store/slices/cartSli
 import { ProductDetails } from '../../types/ProductDetails';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/navigation';
+import { resolveImageUrl } from '../../Utility/apiConfig';
 
 interface Props {
   item: ProductDetails;
@@ -37,7 +38,7 @@ const CartItem = ({ item }: Props) => {
       <TouchableOpacity style={styles.leftSection} onPress={handlePress} activeOpacity={0.85}>
         <View style={styles.imageBackdrop}>
           {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="contain" />
+            <Image source={{ uri: resolveImageUrl(item.imageUrl) }} style={styles.image} resizeMode="contain" />
           ) : null}
         </View>
 

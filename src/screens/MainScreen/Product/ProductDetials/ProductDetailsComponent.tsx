@@ -5,6 +5,7 @@ import { RootState } from '../../../../store';
 import { addToCart, incrementQuantity, decrementQuantity } from '../../../../store/slices/cartSlice';
 import { ProductDetails, ProductVariant } from '../../../../types/ProductDetails';
 import { ProductListItemDto } from '../../../../types/ProductListItemDto';
+import { resolveImageUrl } from '../../../../Utility/apiConfig';
 
 interface Props {
   product: ProductDetails;
@@ -85,7 +86,7 @@ export default function ProductDetailsComponent({ product }: Props) {
           viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
           renderItem={({ item }) => (
             <View style={styles.imageWrapper}>
-              <Image source={{ uri: item }} style={styles.image} resizeMode="contain" />
+              <Image source={{ uri: resolveImageUrl(item) }} style={styles.image} resizeMode="contain" />
             </View>
           )}
         />

@@ -14,6 +14,7 @@ import { RootState } from '../../store';
 import { addToCart, incrementQuantity, decrementQuantity } from '../../store/slices/cartSlice';
 import { ProductListItemDto } from '../../types/ProductListItemDto';
 import { getActiveFlashSaleApi } from '../../Utility/bannerApi';
+import { resolveImageUrl } from '../../Utility/apiConfig';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FLASH_GAP = 10;
@@ -148,7 +149,7 @@ const FlashDealsCard = ({ flashProducts = [] }: Props) => {
                 >
                   <View style={styles.itemImageBackdrop}>
                     {item.imageUrl ? (
-                      <Image source={{ uri: item.imageUrl }} style={styles.itemImg} />
+                      <Image source={{ uri: resolveImageUrl(item.imageUrl) }} style={styles.itemImg} />
                     ) : null}
                     <View style={styles.itemDiscountPill}>
                       <Text style={styles.itemDiscountText}>⚡ {discountPercent}% OFF</Text>

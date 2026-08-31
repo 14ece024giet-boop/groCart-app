@@ -42,6 +42,23 @@ export function getApiBaseUrl(): string {
 export const BASE_URL = getApiBaseUrl();
 console.log(`[API Config] Active Base URL: ${BASE_URL}`);
 
+export function resolveImageUrl(rawUrl?: string | null): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('cloudinary.com') || rawUrl.includes('unsplash.com')) {
+    return rawUrl;
+  }
+  const baseUrlHost = BASE_URL.replace('/api', '');
+  const uploadsIdx = rawUrl.indexOf('/uploads/');
+  if (uploadsIdx >= 0) {
+    return `${baseUrlHost}${rawUrl.substring(uploadsIdx)}`;
+  }
+  if (rawUrl.startsWith('http://10.') || rawUrl.startsWith('http://localhost') || rawUrl.startsWith('http://192.168.')) {
+    const urlPath = rawUrl.replace(/^https?:\/\/[^\/]+/, '');
+    return `${baseUrlHost}${urlPath}`;
+  }
+  return rawUrl;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
