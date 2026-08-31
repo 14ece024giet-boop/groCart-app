@@ -41,7 +41,12 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+        }}
+      >
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="SignIn" component={SignInScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
@@ -49,7 +54,6 @@ export default function AppNavigator() {
         <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
 
         <Stack.Screen name="Main" component={MainScreen} />
-        <Stack.Screen name="Home" component={MainScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Favorites" component={FavoritesScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />

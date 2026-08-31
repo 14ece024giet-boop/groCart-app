@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { getAuthTokens } from './tokenStorage';
-import { BASE_URL } from './apiConfig';
+import { BASE_URL, getApiBaseUrl } from './apiConfig';
 
 /**
  * Generate a transaction correlation ID for tracing
@@ -26,6 +26,10 @@ export const apiClient: AxiosInstance = axios.create({
 // 🔹 Request Interceptor
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    // 0. Ensure baseURL is dynamically resolved at runtime
+    const activeBaseUrl = getApiBaseUrl();
+    config.baseURL = activeBaseUrl;
+
     // 1. Attach Correlation ID
     const correlationId = generateCorrelationId();
     config.headers.set('X-Correlation-Id', correlationId);
