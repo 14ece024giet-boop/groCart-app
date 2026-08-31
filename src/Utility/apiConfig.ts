@@ -36,7 +36,7 @@ export function getApiBaseUrl(): string {
   }
 
   // 4. Default fallback to Live Cloud API for release builds
-  return 'https://grocartapi.onrender.com/api';
+  return 'https://grocart-api-uat.onrender.com/api';
 };
 
 export const BASE_URL = getApiBaseUrl();
