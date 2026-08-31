@@ -71,7 +71,7 @@ const OtpVerificationScreen = ({
 
       if (response.success) {
         Alert.alert('Success', response.message || 'Verification successful!');
-        navigation.navigate('Main');
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
       } else {
         Alert.alert('Failed', response.message || 'Invalid OTP or user data.');
       }

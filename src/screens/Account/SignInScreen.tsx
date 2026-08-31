@@ -53,7 +53,7 @@ const SignInScreen = () => {
           dispatch(resetCartOnLogout());
           dispatch(fetchAndHydrateServerCart() as any);
           dispatch(fetchAndHydrateServerWishlist() as any);
-          navigation.navigate('Main');
+          navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
         } else {
           showToast(response.message || 'Unable to log in', 'error');
         }

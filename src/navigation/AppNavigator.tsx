@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import CartScreen from '../screens/Cart/CartScreen';
@@ -26,22 +27,53 @@ import ManageAddressScreen from '../screens/Account/ManageAddressScreen';
 
 import { useDispatch } from 'react-redux';
 import { loadLocalCart, fetchAndHydrateServerCart } from '../store/slices/cartSlice';
+import { fetchAndHydrateServerWishlist } from '../store/slices/favoritesSlice';
+import { getAuthTokens } from '../Utility/tokenStorage';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const dispatch = useDispatch();
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null);
 
   useEffect(() => {
-    // 1. Load cart stored locally on device immediately
-    dispatch(loadLocalCart() as any);
-    // 2. Hydrate cart stored on Azure SQL server for authenticated account
-    dispatch(fetchAndHydrateServerCart() as any);
+    async function checkAuthSession() {
+      try {
+        const tokens = await getAuthTokens();
+        if (tokens?.accessToken) {
+          // 🚀 Authenticated User: Land directly on Main Home Screen
+          setInitialRoute('Main');
+          dispatch(loadLocalCart() as any);
+          dispatch(fetchAndHydrateServerCart() as any);
+          dispatch(fetchAndHydrateServerWishlist() as any);
+        } else {
+          // 🔒 Unauthenticated: Show Welcome Screen
+          setInitialRoute('Welcome');
+        }
+      } catch (err) {
+        setInitialRoute('Welcome');
+      }
+    }
+
+    checkAuthSession();
   }, [dispatch]);
+
+  // Branded Splash Loader while checking persistent session
+  if (!initialRoute) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#034833', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 36, fontWeight: '900', color: '#FFFFFF', letterSpacing: 1, marginBottom: 16 }}>
+          Gro<Text style={{ color: '#FACC15' }}>Cart</Text>
+        </Text>
+        <ActivityIndicator size="large" color="#FACC15" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName={initialRoute}
         screenOptions={{
           headerShown: false,
           animation: 'none',
